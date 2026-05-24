@@ -22,9 +22,14 @@ COPY requirements-lock.txt .
 #    sentence-transformers will see torch as satisfied and won't pull GPU torch.
 RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
 
-# 2) All other deps from the exact-pinned lock file. bcrypt==4.0.1 is already
-#    pinned in the lock, so the previous "install bcrypt twice" dance is gone.
-RUN pip install --no-cache-dir -r requirements-lock.txt && rm -rf /root/.cache/pip
+# 2) All other deps from the exact-pinned lock file.
+#    --no-deps is critical: the lock already includes every transitive package
+#    we need (pip freeze captures the entire installed set). Letting pip's
+#    resolver try to satisfy transitive constraints causes ResolutionImpossible
+#    errors because some packages (e.g. pinecone) declare hard requirements on
+#    other packages (pinecone-plugin-assistant) that conflict with what we
+#    actually need pinned. --no-deps says: "trust the lock, just install it".
+RUN pip install --no-cache-dir --no-deps -r requirements-lock.txt && rm -rf /root/.cache/pip
 
 # 3) Neutralise the deprecated `pinecone-plugin-inference` plugin that
 #    pinecone-client 5.x drags in as a transitive dep. The new pinecone>=6

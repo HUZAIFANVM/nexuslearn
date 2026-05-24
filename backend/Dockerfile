@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for PDF/OCR processing
+# System dependencies for PDF/OCR processing
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     libglib2.0-0 \
@@ -11,25 +11,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+# requirements-lock.txt is generated from a working local venv via `pip freeze`.
+# It pins every transitive dep so the production image matches local exactly.
+# When you change dependencies: update locally, retest, regenerate the lock with
+#   .\venv\Scripts\python.exe -m pip freeze > backend\requirements-lock.txt
+# then commit + push.
+COPY requirements-lock.txt .
 
 # 1) CPU-only PyTorch first — saves ~2 GB vs the GPU variant (no NVIDIA CUDA libs).
-#    sentence-transformers will pick this up as a satisfied dep and won't pull GPU torch.
+#    sentence-transformers will see torch as satisfied and won't pull GPU torch.
 RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
 
-# 2) Pin bcrypt 4.0.1. bcrypt 4.1+ silently breaks passlib's verify
-#    (login fails with no error). See mg.md > "Known Issues".
-RUN pip install --no-cache-dir bcrypt==4.0.1
+# 2) All other deps from the exact-pinned lock file. bcrypt==4.0.1 is already
+#    pinned in the lock, so the previous "install bcrypt twice" dance is gone.
+RUN pip install --no-cache-dir -r requirements-lock.txt && rm -rf /root/.cache/pip
 
-# 3) The rest of the requirements. Strip pip's wheel cache aggressively to keep
-#    the image (and intermediate build layer) small enough for DO's build limits.
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --force-reinstall bcrypt==4.0.1 && \
-    rm -rf /root/.cache/pip
-
-# 4) Remove the deprecated pinecone-plugin-inference + legacy pinecone-client.
-#    The new pinecone>=6 refuses to import if these are present.
-RUN pip uninstall -y pinecone-plugin-inference pinecone-client || true
+# 3) Build-time sanity check. If pinecone has any import issue (e.g., the
+#    deprecated-plugin guard re-appears), the BUILD fails here with a clear
+#    message instead of crash-looping at runtime.
+RUN python -c "from pinecone import Pinecone; print('OK: pinecone imports cleanly')"
 
 COPY . .
 

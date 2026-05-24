@@ -27,6 +27,10 @@ RUN pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir --force-reinstall bcrypt==4.0.1 && \
     rm -rf /root/.cache/pip
 
+# 4) Remove the deprecated pinecone-plugin-inference + legacy pinecone-client.
+#    The new pinecone>=6 refuses to import if these are present.
+RUN pip uninstall -y pinecone-plugin-inference pinecone-client || true
+
 COPY . .
 
 EXPOSE 8000

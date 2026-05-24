@@ -26,7 +26,14 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
 #    pinned in the lock, so the previous "install bcrypt twice" dance is gone.
 RUN pip install --no-cache-dir -r requirements-lock.txt && rm -rf /root/.cache/pip
 
-# 3) Build-time sanity check. If pinecone has any import issue (e.g., the
+# 3) Neutralise the deprecated `pinecone-plugin-inference` plugin that
+#    pinecone-client 5.x drags in as a transitive dep. The new pinecone>=6
+#    refuses to import if it can `import pinecone_plugins.inference`. We
+#    delete only that one subdirectory; everything else stays.
+RUN pip uninstall -y pinecone-plugin-inference 2>/dev/null; \
+    rm -rf /usr/local/lib/python3.11/site-packages/pinecone_plugins/inference
+
+# 4) Build-time sanity check. If pinecone has any import issue (e.g., the
 #    deprecated-plugin guard re-appears), the BUILD fails here with a clear
 #    message instead of crash-looping at runtime.
 RUN python -c "from pinecone import Pinecone; print('OK: pinecone imports cleanly')"

@@ -38,10 +38,10 @@ RUN pip install --no-cache-dir --no-deps -r requirements-lock.txt && rm -rf /roo
 RUN pip uninstall -y pinecone-plugin-inference 2>/dev/null; \
     rm -rf /usr/local/lib/python3.11/site-packages/pinecone_plugins/inference
 
-# 4) Build-time sanity check. If pinecone has any import issue (e.g., the
-#    deprecated-plugin guard re-appears), the BUILD fails here with a clear
-#    message instead of crash-looping at runtime.
-RUN python -c "from pinecone import Pinecone; print('OK: pinecone imports cleanly')"
+# 4) Build-time sanity check on the critical Python libraries. If --no-deps
+#    missed something, this fails the BUILD with a clear message instead of
+#    crash-looping at runtime. We import without connecting to any service.
+RUN python -c "from pinecone import Pinecone; import fastapi, pymongo, langchain, groq, sentence_transformers, jose, passlib, bcrypt, jwt, pydantic, pydantic_settings, itsdangerous, fastapi_mail, pypdf, fitz, pytesseract, apscheduler; from google import auth as _ga; print('OK: critical libs import cleanly')"
 
 COPY . .
 

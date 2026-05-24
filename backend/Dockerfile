@@ -13,11 +13,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 
-# Pin bcrypt 4.0.1 BEFORE the rest of requirements. bcrypt 4.1+ silently breaks
-# passlib's verify (login fails with no error). See mg.md > "Known Issues".
-RUN pip install --no-cache-dir bcrypt==4.0.1 && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --force-reinstall bcrypt==4.0.1
+# 1) CPU-only PyTorch first — saves ~2 GB vs the GPU variant (no NVIDIA CUDA libs).
+#    sentence-transformers will pick this up as a satisfied dep and won't pull GPU torch.
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
+
+# 2) Pin bcrypt 4.0.1. bcrypt 4.1+ silently breaks passlib's verify
+#    (login fails with no error). See mg.md > "Known Issues".
+RUN pip install --no-cache-dir bcrypt==4.0.1
+
+# 3) The rest of the requirements. Strip pip's wheel cache aggressively to keep
+#    the image (and intermediate build layer) small enough for DO's build limits.
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --force-reinstall bcrypt==4.0.1 && \
+    rm -rf /root/.cache/pip
 
 COPY . .
 

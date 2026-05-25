@@ -89,7 +89,9 @@ async def send_verification_email(email: str, user_id: str, full_name: str) -> b
     """Send verification email to user."""
     try:
         token = generate_verification_token(user_id)
-        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+        # Strip any trailing slash from FRONTEND_URL so we never produce // in the link.
+        base_url = settings.FRONTEND_URL.rstrip("/")
+        verification_url = f"{base_url}/verify-email?token={token}"
 
         html_content = _verification_email_html(full_name, verification_url, settings.VERIFICATION_TOKEN_EXPIRE_HOURS)
 
@@ -193,7 +195,8 @@ async def send_password_reset_email(email: str, user_id: str, full_name: str) ->
     """Send a password reset email with a single-use, time-limited link."""
     try:
         token = generate_password_reset_token(user_id)
-        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+        base_url = settings.FRONTEND_URL.rstrip("/")
+        reset_url = f"{base_url}/reset-password?token={token}"
 
         # Dev affordance: when SMTP isn't configured (DEV_MODE or missing creds),
         # print the reset URL to the backend console so developers can test the

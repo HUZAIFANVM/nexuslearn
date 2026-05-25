@@ -134,9 +134,23 @@ export default function ChatPage() {
   ];
 
   return (
-    <Box display="flex" gap={2} height="calc(100vh - 130px)">
-      {/* Bot list */}
-      <Card sx={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', ...fadeInUp(0) }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: { xs: 'column', md: 'row' },
+      gap: 2,
+      height: { xs: 'auto', md: 'calc(100vh - 130px)' },
+      minHeight: { xs: 'calc(100vh - 130px)', md: 'auto' },
+    }}>
+      {/* Bot list — fixed width on desktop, full width above messages on mobile */}
+      <Card sx={{
+        width: { xs: '100%', md: 260 },
+        maxHeight: { xs: 200, md: 'none' },
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        ...fadeInUp(0),
+      }}>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <Typography variant="h6" fontWeight={700} color="text.primary" mb={0.3} fontSize="0.95rem">Knowledge Hub</Typography>
           <Typography variant="caption" color="text.disabled">Select an AI assistant</Typography>

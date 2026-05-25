@@ -56,7 +56,8 @@ export default function IconRail() {
         zIndex: 90,
         ...glassNavbar(theme),
         borderRadius: '24px',
-        display: 'flex',
+        // Hidden on mobile — TopBar's hamburger opens the same nav as a drawer instead.
+        display: { xs: 'none', md: 'flex' },
         flexDirection: 'column',
         alignItems: 'center',
         py: 1.25,

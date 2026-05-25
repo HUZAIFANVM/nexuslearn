@@ -33,17 +33,18 @@ export default function AppLayout() {
       <IconRail />
       <TopBar />
 
-      {/* Main canvas — transparent, padded so content doesn't sit under the islands */}
+      {/* Main canvas — transparent, padded so content doesn't sit under the islands.
+          On mobile the rail is hidden (drawer takes over), so no left margin. */}
       <Box
         component="main"
         sx={{
           position: 'relative',
           zIndex: 1,
           ml: { xs: 0, md: `${RAIL_WIDTH + 32}px` },
-          pt: { xs: 11, md: 12 },
+          pt: { xs: 12, md: 12 },          // 96px → clears the floating top bar
           pb: { xs: 4, md: 6 },
-          pr: { xs: 2, md: 3 },
-          pl: { xs: 2, md: 3 },
+          pr: { xs: 1.5, md: 3 },          // tighter side padding on phones
+          pl: { xs: 1.5, md: 3 },
           minHeight: '100vh',
           ...fadeInUp(120),
         }}

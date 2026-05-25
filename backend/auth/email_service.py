@@ -91,43 +91,7 @@ async def send_verification_email(email: str, user_id: str, full_name: str) -> b
         token = generate_verification_token(user_id)
         verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
 
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {{ font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }}
-                .container {{ max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }}
-                .header {{ background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%); padding: 32px; text-align: center; }}
-                .header h1 {{ color: white; margin: 0; font-size: 24px; }}
-                .content {{ padding: 32px; }}
-                .content p {{ color: #475569; line-height: 1.6; margin: 0 0 16px 0; }}
-                .button {{ display: inline-block; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: 600; margin: 16px 0; }}
-                .footer {{ padding: 24px 32px; background: #f8fafc; text-align: center; }}
-                .footer p {{ color: #94a3b8; font-size: 13px; margin: 0; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>NexusLearn</h1>
-                </div>
-                <div class="content">
-                    <p>Hi {full_name},</p>
-                    <p>Welcome to NexusLearn! Please verify your email address to complete your registration and start your learning journey.</p>
-                    <p style="text-align: center;">
-                        <a href="{verification_url}" class="button">Verify Email Address</a>
-                    </p>
-                    <p>This link will expire in {settings.VERIFICATION_TOKEN_EXPIRE_HOURS} hours.</p>
-                    <p>If you didn't create an account with NexusLearn, you can safely ignore this email.</p>
-                </div>
-                <div class="footer">
-                    <p>&copy; 2024 NexusLearn. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
+        html_content = _verification_email_html(full_name, verification_url, settings.VERIFICATION_TOKEN_EXPIRE_HOURS)
 
         message = MessageSchema(
             subject="Verify your NexusLearn account",
@@ -240,44 +204,7 @@ async def send_password_reset_email(email: str, user_id: str, full_name: str) ->
                 # SMTP definitely won't work; skip the actual send.
                 return True
 
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {{ font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }}
-                .container {{ max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }}
-                .header {{ background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%); padding: 32px; text-align: center; }}
-                .header h1 {{ color: white; margin: 0; font-size: 24px; }}
-                .content {{ padding: 32px; }}
-                .content p {{ color: #475569; line-height: 1.6; margin: 0 0 16px 0; }}
-                .button {{ display: inline-block; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: 600; margin: 16px 0; }}
-                .footer {{ padding: 24px 32px; background: #f8fafc; text-align: center; }}
-                .footer p {{ color: #94a3b8; font-size: 13px; margin: 0; }}
-                .warn {{ background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; color: #78350f; font-size: 13px; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>NexusLearn</h1>
-                </div>
-                <div class="content">
-                    <p>Hi {full_name},</p>
-                    <p>We received a request to reset the password on your NexusLearn account. Click the button below to choose a new password.</p>
-                    <p style="text-align: center;">
-                        <a href="{reset_url}" class="button">Reset Password</a>
-                    </p>
-                    <p>This link will expire in 1 hour and can be used only once.</p>
-                    <div class="warn">If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.</div>
-                </div>
-                <div class="footer">
-                    <p>&copy; 2024 NexusLearn. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
+        html_content = _password_reset_email_html(full_name, reset_url)
 
         message = MessageSchema(
             subject="Reset your NexusLearn password",
@@ -314,4 +241,185 @@ def invalidate_previous_reset_tokens(user_id: str):
     password_reset_tokens_collection.update_many(
         {"user_id": ObjectId(user_id), "used_at": None},
         {"$set": {"used_at": datetime.utcnow()}}
+    )
+
+
+# ---------------------------------------------------------------------------
+# HTML email templates
+# ---------------------------------------------------------------------------
+#
+# Email clients (especially Outlook) are picky:
+#   - Inline styles only — no <style> block reliably supported.
+#   - Tables for layout — flexbox/grid are flaky.
+#   - No SVG — strip it. Brand mark is rendered as a styled "N" inside a
+#     gradient box, plus the wordmark in text.
+#   - Max width 600px, single column.
+#
+# Both templates share the same shell. _email_shell() wraps the body content.
+
+_BRAND_PRIMARY = "#3B82F6"
+_BRAND_SECONDARY = "#8B5CF6"
+_BRAND_DARK = "#0F172A"
+_BG = "#F1F5F9"
+_TEXT = "#1E293B"
+_MUTED = "#64748B"
+_LIGHTER = "#94A3B8"
+_HAIRLINE = "#E2E8F0"
+
+
+def _email_shell(*, preview: str, body_html: str) -> str:
+    """Wrap inner body content with the standard NexusLearn email chrome."""
+    return f"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>NexusLearn</title>
+</head>
+<body style="margin:0; padding:0; background-color:{_BG}; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:{_TEXT};">
+  <!-- Preview text (shows in inbox preview, hidden in the body) -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+    {preview}
+  </div>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:{_BG}; padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px; width:100%; background-color:#FFFFFF; border-radius:20px; box-shadow:0 8px 32px rgba(15,23,42,0.08); overflow:hidden; border:1px solid {_HAIRLINE};">
+
+          <!-- Header with brand gradient -->
+          <tr>
+            <td style="background:linear-gradient(135deg,{_BRAND_PRIMARY} 0%,{_BRAND_SECONDARY} 100%); padding:36px 32px 32px 32px; text-align:left;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:middle; padding-right:14px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="44" height="44" align="center" valign="middle" style="background-color:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.30); border-radius:12px; color:#FFFFFF; font-weight:800; font-size:20px; line-height:44px; text-align:center;">N</td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <div style="color:#FFFFFF; font-size:20px; font-weight:800; letter-spacing:-0.01em; line-height:1;">NexusLearn</div>
+                    <div style="color:rgba(255,255,255,0.78); font-size:12px; letter-spacing:0.06em; text-transform:uppercase; margin-top:4px;">Enterprise Learning Platform</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body slot -->
+          <tr>
+            <td style="padding:36px 36px 32px 36px;">
+              {body_html}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#F8FAFC; border-top:1px solid {_HAIRLINE}; padding:24px 36px; text-align:center;">
+              <div style="color:{_LIGHTER}; font-size:12px; line-height:1.6;">
+                Sent by <span style="color:{_MUTED}; font-weight:600;">NexusLearn</span> · nexuslearn.tech
+              </div>
+              <div style="color:{_LIGHTER}; font-size:11px; line-height:1.6; margin-top:6px;">
+                &copy; {datetime.utcnow().year} NexusLearn. All rights reserved.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+
+
+def _primary_button(href: str, label: str) -> str:
+    """Render a brand-gradient pill button. Uses a bulletproof bordered button
+    so Outlook (which ignores gradients) still shows a solid blue pill."""
+    return f"""
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto;">
+      <tr>
+        <td align="center" bgcolor="{_BRAND_PRIMARY}" style="border-radius:999px; background:linear-gradient(135deg,{_BRAND_PRIMARY} 0%,{_BRAND_SECONDARY} 100%); box-shadow:0 8px 24px rgba(99,102,241,0.30);">
+          <a href="{href}" target="_blank" style="display:inline-block; padding:14px 36px; color:#FFFFFF; font-weight:700; font-size:15px; text-decoration:none; border-radius:999px; line-height:1;">{label}</a>
+        </td>
+      </tr>
+    </table>
+    """
+
+
+def _verification_email_html(full_name: str, verification_url: str, expire_hours: int) -> str:
+    first_name = (full_name or "there").split(" ")[0]
+    body = f"""
+    <div style="font-size:13px; color:{_MUTED}; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; margin-bottom:14px;">Confirm Your Email</div>
+    <h1 style="color:{_TEXT}; font-size:26px; line-height:1.25; margin:0 0 14px 0; font-weight:800; letter-spacing:-0.01em;">Welcome to NexusLearn, {first_name}.</h1>
+    <p style="color:{_MUTED}; font-size:15px; line-height:1.65; margin:0 0 8px 0;">
+      You're one click away from your personalized learning workspace — chatbots, retention training, competency evaluations, and a growth roadmap built for you.
+    </p>
+    <p style="color:{_MUTED}; font-size:15px; line-height:1.65; margin:0 0 8px 0;">
+      Confirm your email to activate your account:
+    </p>
+
+    {_primary_button(verification_url, "Verify my email")}
+
+    <p style="color:{_LIGHTER}; font-size:13px; line-height:1.65; margin:8px 0 24px 0;">
+      Button not working? Paste this link into your browser:<br />
+      <a href="{verification_url}" style="color:{_BRAND_PRIMARY}; word-break:break-all; text-decoration:none;">{verification_url}</a>
+    </p>
+
+    <div style="border-top:1px solid {_HAIRLINE}; margin:28px 0;"></div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="background-color:#FEF3C7; border:1px solid #FDE68A; border-radius:12px; padding:14px 16px;">
+          <div style="color:#92400E; font-size:13px; font-weight:700; margin-bottom:4px;">Heads up</div>
+          <div style="color:#78350F; font-size:13px; line-height:1.55;">
+            This link expires in <strong>{expire_hours} hours</strong> and works only once. If you didn't sign up for NexusLearn, you can safely ignore this email — no account will be created.
+          </div>
+        </td>
+      </tr>
+    </table>
+    """
+    return _email_shell(
+        preview=f"Hi {first_name} — one click to activate your NexusLearn account.",
+        body_html=body,
+    )
+
+
+def _password_reset_email_html(full_name: str, reset_url: str) -> str:
+    first_name = (full_name or "there").split(" ")[0]
+    body = f"""
+    <div style="font-size:13px; color:{_MUTED}; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; margin-bottom:14px;">Reset Your Password</div>
+    <h1 style="color:{_TEXT}; font-size:26px; line-height:1.25; margin:0 0 14px 0; font-weight:800; letter-spacing:-0.01em;">Hi {first_name}, let's get you back in.</h1>
+    <p style="color:{_MUTED}; font-size:15px; line-height:1.65; margin:0 0 8px 0;">
+      We received a request to reset the password on your NexusLearn account. Tap the button below to choose a new one.
+    </p>
+
+    {_primary_button(reset_url, "Choose a new password")}
+
+    <p style="color:{_LIGHTER}; font-size:13px; line-height:1.65; margin:8px 0 24px 0;">
+      Button not working? Paste this link into your browser:<br />
+      <a href="{reset_url}" style="color:{_BRAND_PRIMARY}; word-break:break-all; text-decoration:none;">{reset_url}</a>
+    </p>
+
+    <div style="border-top:1px solid {_HAIRLINE}; margin:28px 0;"></div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="background-color:#FEE2E2; border:1px solid #FECACA; border-radius:12px; padding:14px 16px;">
+          <div style="color:#991B1B; font-size:13px; font-weight:700; margin-bottom:4px;">Didn't request this?</div>
+          <div style="color:#7F1D1D; font-size:13px; line-height:1.55;">
+            Ignore this email — your password stays unchanged. The link expires in <strong>1 hour</strong> and can be used only once. If you keep getting these without asking, contact your administrator.
+          </div>
+        </td>
+      </tr>
+    </table>
+    """
+    return _email_shell(
+        preview=f"Hi {first_name} — reset your NexusLearn password.",
+        body_html=body,
     )

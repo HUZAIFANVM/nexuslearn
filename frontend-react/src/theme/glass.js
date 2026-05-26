@@ -157,6 +157,61 @@ export const floatGently = {
 };
 
 /**
+ * Apply to an element that already has an `auroraBackground` to make the
+ * aurora blobs slowly drift. Adds movement to an otherwise static background.
+ */
+export const auroraDrift = {
+  '@media (prefers-reduced-motion: no-preference)': {
+    animation: 'nl-aurora-drift 28s ease-in-out infinite alternate',
+  },
+  '@keyframes nl-aurora-drift': {
+    '0%':   { backgroundPosition: '0% 0%, 100% 0%, 100% 100%, 0% 100%, 50% 50%' },
+    '50%':  { backgroundPosition: '20% 30%, 70% 10%, 80% 90%, 30% 80%, 50% 50%' },
+    '100%': { backgroundPosition: '0% 0%, 100% 0%, 100% 100%, 0% 100%, 50% 50%' },
+  },
+};
+
+/**
+ * Card hover: lift + soft brand-tinted glow shadow.
+ * Combine with glassCard / fadeInUp etc.
+ */
+export const cardHoverLift = {
+  transition: 'transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.35s ease, border-color 0.35s ease',
+  '&:hover': {
+    transform: 'translateY(-6px)',
+    boxShadow: '0 24px 60px -18px rgba(99,102,241,0.35)',
+    borderColor: 'rgba(139,92,246,0.45)',
+  },
+};
+
+/**
+ * Spring an icon inside a card when the card is hovered.
+ * Apply this to the icon container; expects the parent card to use `.MuiCard-root:hover &` or similar.
+ * Easiest pattern: parent card has `&:hover .nl-card-icon { ... }` already set up via this style.
+ */
+export const cardIconSpring = {
+  className: 'nl-card-icon',
+  transition: 'transform 0.45s cubic-bezier(0.34, 1.6, 0.64, 1)',
+};
+
+/**
+ * Reveal helper for scroll-triggered animations — apply to any element
+ * along with `inView` from useInView. Element starts invisible + translated,
+ * snaps to visible state when `inView` becomes true.
+ */
+export const revealOnScroll = (inView, delayMs = 0) => ({
+  opacity: inView ? 1 : 0,
+  transform: inView ? 'translateY(0)' : 'translateY(24px)',
+  transition: `opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1) ${delayMs}ms, transform 0.7s cubic-bezier(0.4, 0, 0.2, 1) ${delayMs}ms`,
+  // Respect prefers-reduced-motion — show immediately.
+  '@media (prefers-reduced-motion: reduce)': {
+    opacity: 1,
+    transform: 'none',
+    transition: 'none',
+  },
+});
+
+/**
  * Subtle "shine sweep" overlay that animates on hover.
  * Apply to a glass card; the card needs `position: relative; overflow: hidden`.
  */

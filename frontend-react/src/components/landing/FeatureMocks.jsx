@@ -1,7 +1,7 @@
 import { Box, Typography, LinearProgress, Chip } from '@mui/material';
 import {
   Description, AutoAwesome, CheckCircle, RadioButtonUnchecked,
-  Bolt, AccessTime,
+  Bolt, AccessTime, LightbulbOutlined, TipsAndUpdates, Today,
 } from '@mui/icons-material';
 
 /**
@@ -341,6 +341,112 @@ export function GrowthRoadmapMock({ theme }) {
             </Box>
           );
         })}
+      </Box>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 5. SOP of the Day — daily highlight dialog                         */
+/* ------------------------------------------------------------------ */
+export function SOPOfTheDayMock({ theme }) {
+  const accent = '#06B6D4';
+  return (
+    <Box sx={MOCK_SHELL(theme, accent)}>
+      {/* Date header */}
+      <Box sx={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        mb: 1.8,
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{
+            width: 28, height: 28, borderRadius: '8px',
+            background: `linear-gradient(135deg, ${accent} 0%, #0891B2 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff',
+          }}>
+            <LightbulbOutlined sx={{ fontSize: 15 }} />
+          </Box>
+          <Box>
+            <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ display: 'block', lineHeight: 1.2, fontSize: '0.78rem' }}>
+              Today's highlight
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.66rem' }}>
+              Auto-rotated · 06:30 daily
+            </Typography>
+          </Box>
+        </Box>
+        <Chip
+          icon={<Today sx={{ fontSize: 12 }} />}
+          label="DAY 47"
+          size="small"
+          sx={{
+            height: 20, fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
+            bgcolor: `${accent}15`, color: accent, borderRadius: '5px',
+            '& .MuiChip-icon': { color: accent },
+          }}
+        />
+      </Box>
+      {/* Source doc chip */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, mb: 1.2 }}>
+        <Description sx={{ fontSize: 13, color: 'text.secondary' }} />
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+          From: Customer Escalation SOP · §3.4
+        </Typography>
+      </Box>
+      {/* Title */}
+      <Typography variant="body2" sx={{
+        fontWeight: 700, color: 'text.primary', mb: 1,
+        fontSize: '0.95rem', lineHeight: 1.35,
+      }}>
+        Always confirm severity before escalating.
+      </Typography>
+      {/* Body — 3 key points */}
+      <Box sx={{
+        background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : `${accent}08`,
+        border: '1px solid', borderColor: `${accent}25`,
+        borderRadius: '12px',
+        p: 1.5, mb: 1.5,
+      }}>
+        {[
+          'P0 = customer-blocking, page on-call immediately',
+          'P1 = degraded UX, file ticket in #escalations',
+          'P2 = cosmetic, batch in weekly review',
+        ].map((point, i) => (
+          <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: i < 2 ? 0.7 : 0 }}>
+            <Box sx={{
+              minWidth: 16, mt: '3px',
+              color: accent, fontSize: '0.7rem', fontWeight: 800,
+              fontVariantNumeric: 'tabular-nums',
+            }}>
+              {i + 1}.
+            </Box>
+            <Typography variant="caption" sx={{
+              fontSize: '0.74rem', lineHeight: 1.5, color: 'text.primary',
+            }}>
+              {point}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+      {/* Footer action */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.66rem' }}>
+          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4 }}>
+            <TipsAndUpdates sx={{ fontSize: 11, color: accent }} />
+            Read in under 30 seconds
+          </Box>
+        </Typography>
+        <Box sx={{
+          px: 1.2, py: 0.5,
+          borderRadius: '999px',
+          background: `linear-gradient(135deg, ${accent} 0%, #0891B2 100%)`,
+          color: '#fff',
+          fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.02em',
+          boxShadow: `0 4px 14px ${accent}40`,
+        }}>
+          Got it
+        </Box>
       </Box>
     </Box>
   );

@@ -16,7 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { homeForRole } from '../components/auth/ProtectedRoute';
 import NexusMark from '../components/brand/NexusMark';
 import AnimatedHeading from '../components/landing/AnimatedHeading';
-import HeroFeatureShowcase from '../components/landing/HeroFeatureShowcase';
+import HeroFeatureCarousel from '../components/landing/HeroFeatureCarousel';
 import {
   KnowledgeAssistantMock, RetentionTrainingMock,
   CompetencyEvaluationMock, GrowthRoadmapMock, SOPOfTheDayMock,
@@ -313,9 +313,11 @@ export default function LandingPage() {
       <Box ref={heroRef} sx={{
         position: 'relative',
         minHeight: '100vh', pt: { xs: 14, md: 16 },
-        display: 'flex', alignItems: 'center',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
         px: { xs: 3, md: 8 }, pb: { xs: 10, md: 12 },
-        flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 6, md: 6 },
+        gap: { xs: 5, md: 6 },
+        textAlign: 'center',
         overflow: 'hidden',
       }}>
         {/* Mouse-follow spotlight */}
@@ -331,10 +333,9 @@ export default function LandingPage() {
           }}
         />
 
-        {/* Left: copy + CTAs */}
+        {/* Copy + CTAs (centered) */}
         <Box sx={{
-          flex: { xs: '1 1 auto', md: '0 0 55%' },
-          textAlign: { xs: 'center', md: 'left' },
+          maxWidth: 820,
           position: 'relative', zIndex: 1,
         }}>
           <Chip
@@ -364,12 +365,11 @@ export default function LandingPage() {
           />
           <Typography variant="body1" sx={{
             color: 'text.secondary', mb: 4, fontSize: { xs: '1rem', md: '1.1rem' },
-            maxWidth: 540, lineHeight: 1.7,
-            mx: { xs: 'auto', md: 0 },
+            maxWidth: 600, lineHeight: 1.7, mx: 'auto',
           }}>
             Upload your SOPs, policies, and training materials. NexusLearn instantly turns each one into a Knowledge Assistant, Retention Training cards, Competency Evaluations, and a Growth Roadmap — for every employee on your team.
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 4, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 4, flexWrap: 'wrap' }}>
             <Button
               variant="contained" size="large"
               onClick={() => navigate('/signup')}
@@ -401,7 +401,7 @@ export default function LandingPage() {
           {/* Trust pills */}
           <Box sx={{
             display: 'flex', gap: 3, alignItems: 'center',
-            justifyContent: { xs: 'center', md: 'flex-start' }, flexWrap: 'wrap',
+            justifyContent: 'center', flexWrap: 'wrap',
           }}>
             {['SOC 2 aligned', 'GDPR ready', 'Source-cited answers'].map((text) => (
               <Box key={text} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -412,13 +412,9 @@ export default function LandingPage() {
           </Box>
         </Box>
 
-        {/* Right: live chat preview */}
-        <Box sx={{
-          flex: { xs: '1 1 auto', md: '0 0 40%' },
-          width: '100%', maxWidth: 500,
-          position: 'relative', zIndex: 1,
-        }}>
-          <HeroFeatureShowcase />
+        {/* Feature carousel — full width so cards can fan out */}
+        <Box sx={{ width: '100%', position: 'relative', zIndex: 1 }}>
+          <HeroFeatureCarousel />
         </Box>
 
         {/* Scroll-down indicator */}

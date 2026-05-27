@@ -1,42 +1,33 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, Avatar, Chip, LinearProgress } from '@mui/material';
 import {
   SmartToy, Style, Quiz, Route, LightbulbOutlined,
-  Person, AutoAwesome, MenuBook, Description, CheckCircle,
+  Person, AutoAwesome, Description, CheckCircle,
   RadioButtonUnchecked, AccessTime, Bolt, Today, TipsAndUpdates,
 } from '@mui/icons-material';
-import NexusMark from '../brand/NexusMark';
 
 /**
- * HeroFeatureShowcase — the hero's living product preview.
- *
- * Shows an animated mini-demo for each of the 5 features. Auto-rotates
- * every ROTATE_MS, and can be switched manually with the selector pills
- * (which resets the rotation timer). Each demo is keyed by the active
- * index so it remounts and replays its entrance animation on switch.
+ * featureDemos — the 5 animated mini-product demos + their metadata.
+ * Shared by the hero carousel. Each demo plays its entrance animation on
+ * mount, so remounting (via React key) replays it.
  */
 
-const FEATURES = [
-  { key: 'knowledge',  label: 'Knowledge Assistants',   short: 'Assistant',  icon: <SmartToy sx={{ fontSize: 17 }} />,         color: '#3B82F6' },
-  { key: 'retention',  label: 'Retention Training',      short: 'Retention',  icon: <Style sx={{ fontSize: 17 }} />,            color: '#8B5CF6' },
-  { key: 'competency', label: 'Competency Evaluations',  short: 'Evaluation', icon: <Quiz sx={{ fontSize: 17 }} />,             color: '#10B981' },
-  { key: 'roadmap',    label: 'Growth Roadmaps',         short: 'Roadmap',    icon: <Route sx={{ fontSize: 17 }} />,            color: '#F59E0B' },
-  { key: 'sop',        label: 'SOP of the Day',          short: 'SOP',        icon: <LightbulbOutlined sx={{ fontSize: 17 }} />, color: '#06B6D4' },
+export const FEATURES = [
+  { key: 'knowledge',  label: 'Knowledge Assistants',  short: 'Assistant',  icon: <SmartToy sx={{ fontSize: 18 }} />,          color: '#3B82F6' },
+  { key: 'retention',  label: 'Retention Training',     short: 'Retention',  icon: <Style sx={{ fontSize: 18 }} />,             color: '#8B5CF6' },
+  { key: 'competency', label: 'Competency Evaluations', short: 'Evaluation', icon: <Quiz sx={{ fontSize: 18 }} />,              color: '#10B981' },
+  { key: 'roadmap',    label: 'Growth Roadmaps',        short: 'Roadmap',    icon: <Route sx={{ fontSize: 18 }} />,             color: '#F59E0B' },
+  { key: 'sop',        label: 'SOP of the Day',         short: 'SOP',        icon: <LightbulbOutlined sx={{ fontSize: 18 }} />, color: '#06B6D4' },
 ];
 
-const ROTATE_MS = 7000;
-const DEMO_MIN_HEIGHT = 268;
-
-/* small helper: a stagger-reveal box */
+/* stagger-reveal helper */
 const reveal = (show, delayMs = 0, fromY = 8) => ({
   opacity: show ? 1 : 0,
   transform: show ? 'translateY(0)' : `translateY(${fromY}px)`,
   transition: `opacity 0.45s ease ${delayMs}ms, transform 0.45s ease ${delayMs}ms`,
 });
 
-/* ------------------------------------------------------------------ */
-/* useStep — advance through animation phases via timed setTimeouts    */
-/* ------------------------------------------------------------------ */
+/* useStep — advance through animation phases via timed setTimeouts */
 function useStep(stops) {
   const [step, setStep] = useState(0);
   useEffect(() => {
@@ -81,7 +72,6 @@ function KnowledgeDemo() {
           Security Handbook.pdf · indexed
         </Typography>
       </Box>
-      {/* user msg */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.3, gap: 1 }}>
         <Box sx={{
           maxWidth: '80%', px: 1.75, py: 1,
@@ -95,7 +85,6 @@ function KnowledgeDemo() {
         </Box>
         <Avatar sx={{ width: 26, height: 26, bgcolor: '#0F172A' }}><Person sx={{ fontSize: 13 }} /></Avatar>
       </Box>
-      {/* assistant */}
       <Box sx={{ display: 'flex', gap: 1 }}>
         <Avatar sx={{ width: 26, height: 26, borderRadius: '8px', background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)' }}>
           <AutoAwesome sx={{ fontSize: 13 }} />
@@ -159,7 +148,6 @@ function KnowledgeDemo() {
 /* ------------------------------------------------------------------ */
 function RetentionDemo() {
   const accent = '#8B5CF6';
-  // 1 = question, 2 = answer revealed, 3 = "Good" picked
   const step = useStep([1600, 3000]);
   return (
     <Box>
@@ -241,7 +229,6 @@ function CompetencyDemo() {
     'Wait for the quarterly compliance audit',
   ];
   const correctIdx = 1;
-  // 1 = selected, 2 = graded
   const step = useStep([1500, 2600]);
   const progress = step >= 2 ? 40 : 30;
   return (
@@ -308,9 +295,8 @@ function RoadmapDemo() {
     { title: 'Vendor Risk Management',   score: null },
     { title: 'Advanced Compliance',      score: null },
   ];
-  // reveal count climbs: step 1 → 1 done, step 2 → 2 done (current = idx 2)
   const step = useStep([700, 1500]);
-  const doneCount = step; // 0,1,2
+  const doneCount = step;
   const [pct, setPct] = useState(0);
   useEffect(() => {
     const target = 40;
@@ -466,134 +452,10 @@ function SOPDemo() {
   );
 }
 
-const DEMOS = {
+export const DEMOS = {
   knowledge: KnowledgeDemo,
   retention: RetentionDemo,
   competency: CompetencyDemo,
   roadmap: RoadmapDemo,
   sop: SOPDemo,
 };
-
-export default function HeroFeatureShowcase() {
-  const [active, setActive] = useState(0);
-  const pausedRef = useRef(false);
-
-  // Auto-rotate; timer restarts whenever `active` changes (incl. manual click).
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (!pausedRef.current) setActive((a) => (a + 1) % FEATURES.length);
-    }, ROTATE_MS);
-    return () => clearTimeout(t);
-  }, [active]);
-
-  const feature = FEATURES[active];
-  const Demo = DEMOS[feature.key];
-
-  const handlePick = (i) => setActive(i);
-
-  return (
-    <Box
-      sx={{ position: 'relative', width: '100%', maxWidth: 500, mx: 'auto' }}
-      onMouseEnter={() => { pausedRef.current = true; }}
-      onMouseLeave={() => { pausedRef.current = false; }}
-    >
-      {/* tilted decorative cards behind */}
-      <Box aria-hidden sx={{
-        position: 'absolute', inset: 0, transform: 'translate(26px, 26px) rotate(4deg)',
-        background: (t) => t.palette.mode === 'dark' ? 'rgba(99,102,241,0.10)' : 'rgba(99,102,241,0.08)',
-        borderRadius: '24px', border: '1px solid',
-        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.22)',
-        backdropFilter: 'blur(8px)', zIndex: 0,
-      }} />
-      <Box aria-hidden sx={{
-        position: 'absolute', inset: 0, transform: 'translate(-20px, 16px) rotate(-3deg)',
-        background: (t) => t.palette.mode === 'dark' ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.07)',
-        borderRadius: '24px', border: '1px solid',
-        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(139,92,246,0.18)' : 'rgba(139,92,246,0.22)',
-        backdropFilter: 'blur(8px)', zIndex: 0,
-      }} />
-
-      {/* main card */}
-      <Box sx={{
-        position: 'relative', zIndex: 1,
-        background: (t) => t.palette.mode === 'dark' ? 'rgba(17,24,39,0.78)' : 'rgba(255,255,255,0.82)',
-        backdropFilter: 'blur(28px) saturate(170%)',
-        border: '1px solid',
-        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.6)',
-        borderRadius: '24px',
-        boxShadow: (t) => t.palette.mode === 'dark'
-          ? '0 30px 80px -20px rgba(0,0,0,0.55)'
-          : '0 30px 80px -20px rgba(99,102,241,0.30)',
-        p: { xs: 2, md: 2.5 },
-      }}>
-        {/* header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1.75, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{
-            width: 34, height: 34, borderRadius: '10px',
-            background: `linear-gradient(135deg, ${feature.color} 0%, ${feature.color}AA 100%)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', boxShadow: `0 6px 16px ${feature.color}55`,
-            transition: 'background 0.4s ease, box-shadow 0.4s ease',
-          }}>
-            <NexusMark size={19} />
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="body2" fontWeight={700} color="text.primary" sx={{ lineHeight: 1.1 }}>
-              {feature.label}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-              Live preview · auto-rotating
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* demo area — fixed min height, remounts per active feature */}
-        <Box sx={{ minHeight: DEMO_MIN_HEIGHT }}>
-          <Box key={active} sx={{ animation: 'nl-hs-fade 0.4s ease', '@keyframes nl-hs-fade': { from: { opacity: 0 }, to: { opacity: 1 } } }}>
-            <Demo />
-          </Box>
-        </Box>
-
-        {/* selector pills */}
-        <Box sx={{
-          display: 'flex', gap: 0.6, mt: 2, pt: 1.75,
-          borderTop: '1px solid', borderColor: 'divider',
-          justifyContent: 'center', flexWrap: 'wrap',
-        }}>
-          {FEATURES.map((f, i) => {
-            const isActive = i === active;
-            return (
-              <Box
-                key={f.key}
-                onClick={() => handlePick(i)}
-                role="button"
-                aria-label={`Show ${f.label}`}
-                aria-pressed={isActive}
-                title={f.label}
-                sx={{
-                  display: 'inline-flex', alignItems: 'center', gap: 0.5,
-                  px: isActive ? 1.3 : 0.9, py: 0.7,
-                  borderRadius: '999px', cursor: 'pointer',
-                  color: isActive ? '#fff' : 'text.secondary',
-                  background: isActive ? `linear-gradient(135deg, ${f.color} 0%, ${f.color}CC 100%)` : 'transparent',
-                  border: '1px solid',
-                  borderColor: isActive ? 'transparent' : (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.10)',
-                  boxShadow: isActive ? `0 6px 16px ${f.color}45` : 'none',
-                  transition: 'all 0.3s ease',
-                  '&:hover': { borderColor: isActive ? 'transparent' : `${f.color}66`, color: isActive ? '#fff' : f.color },
-                }}
-              >
-                {f.icon}
-                {isActive && (
-                  <Typography variant="caption" sx={{ fontSize: '0.68rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                    {f.short}
-                  </Typography>
-                )}
-              </Box>
-            );
-          })}
-        </Box>
-      </Box>
-    </Box>
-  );
-}

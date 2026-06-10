@@ -15,7 +15,7 @@ import GoogleSignupModal from './GoogleSignupModal';
 
 export default function SignupForm({ embedded = false }) {
   const theme = useTheme();
-  const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'employee', department: '' });
+  const [form, setForm] = useState({ email: '', password: '', confirm_password: '', full_name: '', role: 'employee', department: '' });
   const [departments, setDepartments] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,9 +64,14 @@ export default function SignupForm({ embedded = false }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (form.password !== form.confirm_password) {
+      setError('Passwords do not match');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await signup({ ...form, profile_picture: avatarFile });
+      const { confirm_password, ...payload } = form;
+      const res = await signup({ ...payload, profile_picture: avatarFile });
       setSignupEmail(res.data.email);
       // Check if dev mode (auto-verified)
       if (res.data.message.includes('auto-verified')) {
@@ -207,6 +212,21 @@ export default function SignupForm({ embedded = false }) {
         <TextField fullWidth label="Full Name" value={form.full_name} onChange={handleChange('full_name')} margin="normal" required placeholder="John Smith" />
         <TextField fullWidth label="Work Email" type="email" value={form.email} onChange={handleChange('email')} margin="normal" required placeholder="john@company.com" />
         <TextField fullWidth label="Password" type="password" value={form.password} onChange={handleChange('password')} margin="normal" required />
+        <TextField
+          fullWidth
+          label="Confirm Password"
+          type="password"
+          value={form.confirm_password}
+          onChange={handleChange('confirm_password')}
+          margin="normal"
+          required
+          error={form.confirm_password.length > 0 && form.password !== form.confirm_password}
+          helperText={
+            form.confirm_password.length > 0 && form.password !== form.confirm_password
+              ? 'Passwords do not match'
+              : ' '
+          }
+        />
         <FormControl fullWidth margin="normal">
           <InputLabel>Role</InputLabel>
           <Select value={form.role} onChange={handleChange('role')} label="Role">

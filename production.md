@@ -191,4 +191,4 @@ Please import from langchain-community instead.
 
 ## Quick Start
 
-Tell Claude: "Start production.md — do task #1" (or whichever task number).
+Work through the tasks below in order, starting with task #1 (or whichever task number).

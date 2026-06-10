@@ -344,23 +344,20 @@ docker-compose down -v         # Reset everything (deletes database)
 
 ---
 
-Antigravity Setup Prompt
+New Machine Setup
 
-Copy-paste this when setting up with Claude Code on the new laptop:
+Steps to set up the project on a new laptop. NexusLearn is a FastAPI + React + MongoDB enterprise learning platform.
 
-```
-I have the NexusLearn project unzipped in my test_project folder. It's a FastAPI + React + MongoDB enterprise learning platform.
-
-First, check if prerequisites are installed by running:
+First, check prerequisites are installed:
 - python --version (need 3.11+)
 - node --version (need 18+)
 - mongod --version (need 7+)
 - tesseract --version (need 5+)
 
-If all are present, set up the project:
+Once all are present, set up the project:
 
 1. Start MongoDB service (net start MongoDB on Windows, sudo systemctl start mongod on Linux)
-2. Create Python virtual environment in backend/, activate it, install requirements.txt
+2. Create a Python virtual environment in backend/, activate it, install requirements.txt
 3. Check backend/.env — verify GROQ_API_KEY, HF_TOKEN, PINECONE_API_KEY, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD are filled in and DEV_MODE=true
 4. Start the backend: uvicorn main:app --reload --port 8000
 5. In frontend-react/, run npm install
@@ -369,10 +366,7 @@ If all are present, set up the project:
 8. Verify both are running — backend at localhost:8000, frontend at localhost:3000
 9. On first backend boot, watch the logs for `[bootstrap] Seeded super_admin user: <email>`. Test by signing in at http://localhost:3000 with the SUPER_ADMIN_EMAIL/PASSWORD — should land on /admin/pending-hrs.
 
-If any prerequisite is missing, tell me which one and how to install it before proceeding.
-
 Project docs: spec.md (full spec), phases.md (roadmap), mg.md (this setup guide).
-```
 
 ---
 

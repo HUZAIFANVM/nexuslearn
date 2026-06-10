@@ -279,4 +279,4 @@ npm install
 npm run dev
 ```
 
-Tell Claude: "Continue from phases.md — start Phase 6" or "Start production.md — do task #1"
+To continue: pick up from this file ("start Phase 6") or move to production.md ("do task #1").

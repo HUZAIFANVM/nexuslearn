@@ -1,6 +1,7 @@
 import json
 import re
 import uuid
+import random
 from ai.llm import global_llm
 from ai.prompts import ASSESSMENT_MCQ_PROMPT, ASSESSMENT_SCENARIO_PROMPT
 
@@ -24,6 +25,25 @@ def _parse_llm_json(content: str) -> list:
             raise ValueError(f"Invalid JSON in code block: {e}")
 
     raise ValueError(f"Could not parse JSON from LLM response: {content[:300]}")
+
+
+def _shuffle_options(q: dict):
+    """Randomize option order so the correct answer is evenly distributed across
+    a/b/c/d. The model tends to park the correct answer on one letter ('b')
+    regardless of the prompt, so we enforce distribution in code. Options are
+    re-lettered by their new position and correct_answer_id is repointed."""
+    opts = q.get("options")
+    if not isinstance(opts, list) or len(opts) < 2:
+        return
+    correct_id = q.get("correct_answer_id")
+    correct_opt = next((o for o in opts if isinstance(o, dict) and o.get("id") == correct_id), None)
+    random.shuffle(opts)
+    letters = "abcdefghijklmnop"
+    for i, opt in enumerate(opts):
+        if isinstance(opt, dict):
+            opt["id"] = letters[i]
+    if correct_opt is not None:
+        q["correct_answer_id"] = correct_opt["id"]
 
 
 def _normalize_question(q: dict):
@@ -133,6 +153,7 @@ def _generate_questions_with_retry(prompt: str, expected_type: str, num_requeste
             key = q["question"].strip().lower()
             if key in seen:
                 continue
+            _shuffle_options(q)
             seen.add(key)
             collected.append(q)
             if len(collected) >= num_requested:

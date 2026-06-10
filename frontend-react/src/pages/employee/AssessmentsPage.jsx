@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { Quiz, ArrowBack, CheckCircle, Cancel, EmojiEvents, AccessTime } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { getAssessments, getAssessment, submitAssessment } from '../../api/assessments';
+import { getAssessments, getAssessment, submitAssessment, getAssessmentResults } from '../../api/assessments';
 import { fadeInUp, brandPillButton, glassShineHover } from '../../theme/glass';
 
 const typeConfig = {
@@ -82,6 +82,19 @@ export default function EmployeeAssessmentsPage() {
     } catch {} finally { setLoading(false); }
   };
 
+  // View a previously-completed attempt: fetch the stored result (now enriched
+  // with full question detail) and show the results view without starting a
+  // new attempt.
+  const viewResult = async (a) => {
+    setLoading(true);
+    try {
+      const res = await getAssessmentResults(a.id);
+      setResult(res.data);
+      setTaking(null);
+      setTimeLeft(null);
+    } catch {} finally { setLoading(false); }
+  };
+
   const handleAnswer = (questionId, answerId) => {
     setAnswers({ ...answers, [questionId]: answerId });
   };
@@ -101,7 +114,11 @@ export default function EmployeeAssessmentsPage() {
   // Keep submitRef in sync so the countdown effect can call the latest handleSubmit (avoids stale-closure bugs).
   submitRef.current = handleSubmit;
 
-  const goBack = () => { setTaking(null); setResult(null); setTimeLeft(null); };
+  const goBack = () => {
+    setTaking(null); setResult(null); setTimeLeft(null);
+    // Refresh so a just-completed assessment shows its "Completed · X%" state.
+    getAssessments().then((r) => setAssessments(r.data)).catch(() => {});
+  };
 
   const formatTime = (s) => {
     if (s === null || s === undefined) return '';
@@ -110,8 +127,8 @@ export default function EmployeeAssessmentsPage() {
     return `${m}:${String(r).padStart(2, '0')}`;
   };
 
-  // List view
-  if (!taking) {
+  // List view (shown when not taking and not viewing a result)
+  if (!taking && !result) {
     return (
       <Box>
         <Box mb={4}>
@@ -146,24 +163,50 @@ export default function EmployeeAssessmentsPage() {
                       <Chip label={dc.label} size="small" sx={{ fontSize: '0.65rem', height: 22, fontWeight: 600, bgcolor: dc.bg, color: dc.color }} />
                       <Chip label={`${a.num_questions} Q`} size="small" sx={{ fontSize: '0.65rem', height: 22, fontWeight: 600, bgcolor: 'action.hover', color: 'text.secondary' }} />
                       {a.time_limit_minutes && <Chip label={`${a.time_limit_minutes}m`} size="small" sx={{ fontSize: '0.65rem', height: 22, fontWeight: 600, bgcolor: 'action.hover', color: 'text.secondary' }} />}
+                      {a.completed && (
+                        <Chip
+                          icon={<CheckCircle sx={{ fontSize: 13 }} />}
+                          label={`Completed · ${a.result_percentage}%`}
+                          size="small"
+                          sx={{
+                            fontSize: '0.65rem', height: 22, fontWeight: 700,
+                            bgcolor: theme.palette.custom.greenTint, color: '#10B981',
+                            '& .MuiChip-icon': { color: '#10B981' },
+                          }}
+                        />
+                      )}
                     </Box>
-                    <Button
-                      fullWidth variant="contained" size="small" onClick={() => startAssessment(a)}
-                      disabled={loading}
-                      sx={{
-                        background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
-                        borderRadius: '999px', py: 1,
-                        boxShadow: '0 6px 18px rgba(99,102,241,0.32)',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
-                          boxShadow: '0 10px 24px rgba(99,102,241,0.45)',
-                          transform: 'translateY(-1px)',
-                        },
-                      }}
-                    >
-                      {loading ? <CircularProgress size={16} /> : 'Begin Evaluation'}
-                    </Button>
+                    {a.completed ? (
+                      <Button
+                        fullWidth variant="outlined" size="small" onClick={() => viewResult(a)}
+                        disabled={loading}
+                        sx={{
+                          borderRadius: '999px', py: 1, fontWeight: 600,
+                          borderColor: '#10B981', color: '#10B981',
+                          '&:hover': { borderColor: '#059669', bgcolor: theme.palette.custom.greenTint },
+                        }}
+                      >
+                        {loading ? <CircularProgress size={16} /> : 'View Result'}
+                      </Button>
+                    ) : (
+                      <Button
+                        fullWidth variant="contained" size="small" onClick={() => startAssessment(a)}
+                        disabled={loading}
+                        sx={{
+                          background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+                          borderRadius: '999px', py: 1,
+                          boxShadow: '0 6px 18px rgba(99,102,241,0.32)',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+                            boxShadow: '0 10px 24px rgba(99,102,241,0.45)',
+                            transform: 'translateY(-1px)',
+                          },
+                        }}
+                      >
+                        {loading ? <CircularProgress size={16} /> : 'Begin Evaluation'}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
@@ -213,9 +256,7 @@ export default function EmployeeAssessmentsPage() {
           </CardContent>
         </Card>
 
-        {result.answers.map((a, i) => {
-          const q = taking.questions[i];
-          return (
+        {result.answers.map((a, i) => (
             <Card key={a.question_id} sx={{ mb: 2, borderLeft: '4px solid', borderLeftColor: a.is_correct ? '#10B981' : '#EF4444' }}>
               <CardContent sx={{ p: 2.5 }}>
                 <Box display="flex" gap={1} alignItems="center" mb={1}>
@@ -223,19 +264,19 @@ export default function EmployeeAssessmentsPage() {
                     ? <CheckCircle sx={{ fontSize: 20, color: '#10B981' }} />
                     : <Cancel sx={{ fontSize: 20, color: '#EF4444' }} />
                   }
-                  <Typography fontWeight={700} color="text.primary" fontSize="0.95rem">Q{i + 1}: {q?.question}</Typography>
+                  <Typography fontWeight={700} color="text.primary" fontSize="0.95rem">Q{i + 1}: {a.question}</Typography>
                 </Box>
-                {q?.scenario_context && (
+                {a.scenario_context && (
                   <Box sx={{ p: 2, mb: 1.5, bgcolor: 'background.default', borderRadius: '10px', border: 1, borderColor: 'divider' }}>
-                    <Typography variant="body2" color="text.secondary" fontStyle="italic">{q.scenario_context}</Typography>
+                    <Typography variant="body2" color="text.secondary" fontStyle="italic">{a.scenario_context}</Typography>
                   </Box>
                 )}
                 <Typography variant="body2" color={a.is_correct ? '#059669' : '#DC2626'} mb={0.5}>
-                  Your answer: {q?.options?.find((o) => o.id === a.selected_answer_id)?.text}
+                  Your answer: {a.options?.find((o) => o.id === a.selected_answer_id)?.text || '—'}
                 </Typography>
                 {!a.is_correct && (
                   <Typography variant="body2" color="#059669" mb={0.5}>
-                    Correct: {q?.options?.find((o) => o.id === a.correct_answer_id)?.text}
+                    Correct: {a.options?.find((o) => o.id === a.correct_answer_id)?.text}
                   </Typography>
                 )}
                 {a.explanation && (
@@ -245,8 +286,7 @@ export default function EmployeeAssessmentsPage() {
                 )}
               </CardContent>
             </Card>
-          );
-        })}
+        ))}
       </Box>
     );
   }

@@ -43,6 +43,28 @@ def _parse_object_id(id_str: str) -> ObjectId:
         raise HTTPException(status_code=400, detail=f"Invalid ID format: {id_str}")
 
 
+def _build_detailed_answers(assessment: dict, graded_answers: list) -> list:
+    """Join stored graded answers with the assessment's questions so the client
+    can render a full review (question text, options, the user's pick, the correct
+    answer, and the explanation) from the answers alone — used by both the submit
+    response and the 'view past result' endpoint."""
+    question_map = {q["id"]: q for q in assessment["questions"]}
+    detailed = []
+    for ga in graded_answers:
+        q = question_map.get(ga["question_id"], {})
+        detailed.append({
+            "question_id": ga["question_id"],
+            "question": q.get("question", ""),
+            "scenario_context": q.get("scenario_context"),
+            "options": q.get("options", []),
+            "selected_answer_id": ga.get("selected_answer_id"),
+            "correct_answer_id": q.get("correct_answer_id"),
+            "is_correct": ga.get("is_correct"),
+            "explanation": q.get("explanation", ""),
+        })
+    return detailed
+
+
 @router.post("/assessments")
 async def create_assessment(
     data: AssessmentCreate, hr_user: dict = Depends(require_hr_role)
@@ -137,9 +159,25 @@ async def list_assessments(current_user: dict = Depends(get_current_user)):
         query["$or"] = [{"access_type": "all"}, {"departments": user_dept}]
 
     assessments = list(assessments_collection.find(query))
-    return [
-        {
-            "id": str(a["_id"]),
+
+    # For employees, look up which of these they've already completed (and their
+    # score) in one query, so the UI can show "Completed — X%" + a View Result
+    # action instead of letting them silently re-take and hit a duplicate error.
+    results_by_assessment = {}
+    if current_user["role"] == "employee":
+        user_id = str(current_user["_id"])
+        assessment_ids = [str(a["_id"]) for a in assessments]
+        for r in assessment_results_collection.find({
+            "user_id": user_id,
+            "assessment_id": {"$in": assessment_ids},
+        }):
+            results_by_assessment[r["assessment_id"]] = r
+
+    out = []
+    for a in assessments:
+        aid = str(a["_id"])
+        item = {
+            "id": aid,
             "name": a["name"],
             "document_id": a["document_id"],
             "document_name": a["document_name"],
@@ -151,8 +189,16 @@ async def list_assessments(current_user: dict = Depends(get_current_user)):
             "created_at": a["created_at"],
             "time_limit_minutes": a.get("time_limit_minutes"),
         }
-        for a in assessments
-    ]
+        prior = results_by_assessment.get(aid)
+        if prior:
+            item["completed"] = True
+            item["result_score"] = prior["score"]
+            item["result_total"] = prior["total"]
+            item["result_percentage"] = prior["percentage"]
+        else:
+            item["completed"] = False
+        out.append(item)
+    return out
 
 
 @router.get("/assessments/{assessment_id}")
@@ -325,17 +371,8 @@ async def submit_assessment(
             "assessment_id": assessment_id,
         })
 
-    # Return result with explanations
-    detailed_answers = []
-    for ga in graded_answers:
-        q = question_map.get(ga["question_id"], {})
-        detailed_answers.append(
-            {
-                **ga,
-                "correct_answer_id": q.get("correct_answer_id"),
-                "explanation": q.get("explanation", ""),
-            }
-        )
+    # Return result with full per-answer detail (question, options, correct, explanation)
+    detailed_answers = _build_detailed_answers(assessment, graded_answers)
 
     return {
         "score": score,
@@ -361,13 +398,20 @@ async def get_assessment_results(
     if not result:
         raise HTTPException(status_code=404, detail="No results found")
 
+    # Join with the assessment's questions so the past-result review renders fully
+    # (question text, options, correct answer, explanation) — same shape the submit
+    # response returns. Fall back to the bare stored answers if the assessment was
+    # since deleted.
+    assessment = assessments_collection.find_one({"_id": _parse_object_id(assessment_id)})
+    answers = _build_detailed_answers(assessment, result["answers"]) if assessment else result["answers"]
+
     return {
         "id": str(result["_id"]),
         "assessment_name": result["assessment_name"],
         "score": result["score"],
         "total": result["total"],
         "percentage": result["percentage"],
-        "answers": result["answers"],
+        "answers": answers,
         "time_taken_seconds": result.get("time_taken_seconds"),
         "completed_at": result["completed_at"],
     }

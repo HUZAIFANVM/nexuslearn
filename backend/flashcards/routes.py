@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, time, timedelta
 from bson import ObjectId
 from bson.errors import InvalidId
 from database import flashcard_sets_collection, flashcard_reviews_collection
@@ -12,6 +12,23 @@ from flashcards.services import generate_flashcards, sm2_update
 
 router = APIRouter(tags=["Flashcards"])
 
+# Deadlines are interpreted in Pakistan Standard Time (UTC+5, no DST).
+PKT_OFFSET = timedelta(hours=5)
+
+
+def _parse_due_date(value: Optional[str]) -> Optional[datetime]:
+    """Parse a due-date string into a naive UTC datetime at end-of-day PKT."""
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid due_date format")
+    if dt.tzinfo:
+        dt = dt.replace(tzinfo=None)
+    end_of_day_pkt = datetime.combine(dt.date(), time(23, 59, 59))
+    return end_of_day_pkt - PKT_OFFSET
+
 
 class FlashcardSetCreate(BaseModel):
     document_id: str
@@ -20,6 +37,7 @@ class FlashcardSetCreate(BaseModel):
     difficulty: str = "medium"
     departments: Optional[List[str]] = None
     access_type: str = "all"
+    due_date: Optional[str] = None  # calendar date (PKT); closes end-of-day
 
 
 class ReviewSubmit(BaseModel):
@@ -98,6 +116,7 @@ async def create_flashcard_set(
         "created_by": hr_user["email"],
         "created_at": datetime.utcnow(),
         "is_active": True,
+        "due_date": _parse_due_date(data.due_date),
     }
     result = flashcard_sets_collection.insert_one(flashcard_set)
 
@@ -123,9 +142,29 @@ async def create_flashcard_set(
 async def list_flashcard_sets(current_user: dict = Depends(get_current_user)):
     query = _get_dept_query(current_user)
     sets = list(flashcard_sets_collection.find(query))
-    return [
-        {
-            "id": str(s["_id"]),
+
+    # For employees, figure out which sets they've already studied (have at least
+    # one review) so the UI can mark a missed deadline as "not attempted".
+    studied_set_ids = set()
+    if current_user["role"] == "employee":
+        user_id = str(current_user["_id"])
+        set_ids = [str(s["_id"]) for s in sets]
+        studied_set_ids = {
+            r["flashcard_set_id"]
+            for r in flashcard_reviews_collection.find(
+                {"user_id": user_id, "flashcard_set_id": {"$in": set_ids}},
+                {"flashcard_set_id": 1},
+            )
+        }
+
+    now = datetime.utcnow()
+    out = []
+    for s in sets:
+        sid = str(s["_id"])
+        due = s.get("due_date")
+        attempted = sid in studied_set_ids
+        out.append({
+            "id": sid,
             "name": s["name"],
             "document_id": s["document_id"],
             "document_name": s["document_name"],
@@ -134,9 +173,11 @@ async def list_flashcard_sets(current_user: dict = Depends(get_current_user)):
             "access_type": s.get("access_type", "all"),
             "created_by": s["created_by"],
             "created_at": s["created_at"],
-        }
-        for s in sets
-    ]
+            "due_date": due,
+            "attempted": attempted,
+            "overdue": bool(due and not attempted and now > due),
+        })
+    return out
 
 
 @router.get("/flashcard-sets/{set_id}")

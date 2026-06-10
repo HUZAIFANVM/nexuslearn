@@ -8,6 +8,7 @@ import { Quiz, ArrowBack, CheckCircle, Cancel, EmojiEvents, AccessTime } from '@
 import { useTheme } from '@mui/material/styles';
 import { getAssessments, getAssessment, submitAssessment, getAssessmentResults } from '../../api/assessments';
 import { fadeInUp, brandPillButton, glassShineHover } from '../../theme/glass';
+import { formatDueDate } from '../../utils/dueDate';
 
 const typeConfig = {
   mcq: { label: 'Multiple Choice', color: '#3B82F6', bg: '#EFF6FF' },
@@ -175,6 +176,19 @@ export default function EmployeeAssessmentsPage() {
                           }}
                         />
                       )}
+                      {!a.completed && a.due_date && (
+                        <Chip
+                          icon={<AccessTime sx={{ fontSize: 12 }} />}
+                          label={a.overdue ? 'Due date closed' : `Due ${formatDueDate(a.due_date)}`}
+                          size="small"
+                          sx={{
+                            fontSize: '0.65rem', height: 22, fontWeight: 700,
+                            bgcolor: a.overdue ? theme.palette.custom.redTint : theme.palette.custom.amberTint,
+                            color: a.overdue ? '#DC2626' : '#D97706',
+                            '& .MuiChip-icon': { color: 'inherit' },
+                          }}
+                        />
+                      )}
                     </Box>
                     {a.completed ? (
                       <Button
@@ -187,6 +201,13 @@ export default function EmployeeAssessmentsPage() {
                         }}
                       >
                         {loading ? <CircularProgress size={16} /> : 'View Result'}
+                      </Button>
+                    ) : a.overdue ? (
+                      <Button
+                        fullWidth variant="outlined" size="small" disabled
+                        sx={{ borderRadius: '999px', py: 1, fontWeight: 600, borderColor: 'divider', color: 'text.disabled' }}
+                      >
+                        Missed — Due Date Passed
                       </Button>
                     ) : (
                       <Button

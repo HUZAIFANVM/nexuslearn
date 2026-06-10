@@ -11,6 +11,7 @@ import { getFlashcardSets, createFlashcardSet, deleteFlashcardSet } from '../../
 import { getDocuments } from '../../api/documents';
 import { getDepartments } from '../../api/auth';
 import { fadeInUp, brandPillButton, glassShineHover } from '../../theme/glass';
+import { formatDueDate } from '../../utils/dueDate';
 
 export default function FlashcardsPage() {
   const theme = useTheme();
@@ -18,7 +19,7 @@ export default function FlashcardsPage() {
   const [documents, setDocuments] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', access_type: 'all', departments: [] });
+  const [form, setForm] = useState({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', access_type: 'all', departments: [], due_date: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -37,7 +38,7 @@ export default function FlashcardsPage() {
       await createFlashcardSet(form);
       setSuccess('Training set generated successfully');
       setOpen(false);
-      setForm({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', access_type: 'all', departments: [] });
+      setForm({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', access_type: 'all', departments: [], due_date: '' });
       load();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create training set');
@@ -118,6 +119,13 @@ export default function FlashcardsPage() {
                             '& .MuiChip-icon': { color: 'inherit' },
                           }}
                         />
+                        {s.due_date && (
+                          <Chip
+                            label={`Due ${formatDueDate(s.due_date)}`}
+                            size="small"
+                            sx={{ fontSize: '0.65rem', height: 22, fontWeight: 600, bgcolor: theme.palette.custom.amberTint, color: '#D97706' }}
+                          />
+                        )}
                       </Box>
                     </Box>
                     <IconButton size="small" onClick={() => handleDelete(s.id)} sx={{ color: 'text.disabled', '&:hover': { color: '#EF4444', bgcolor: theme.palette.custom.redTint } }}>
@@ -181,6 +189,16 @@ export default function FlashcardsPage() {
               </Select>
             </FormControl>
           )}
+          <TextField
+            fullWidth
+            label="Due Date (optional)"
+            type="date"
+            value={form.due_date}
+            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+            helperText="Employees should study it before end of this day (Pakistan time). Leave blank for no deadline."
+          />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>

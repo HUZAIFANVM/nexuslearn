@@ -3,10 +3,11 @@ import {
   Box, Typography, Card, CardContent, Grid, Button, Chip,
   LinearProgress, CircularProgress, Avatar,
 } from '@mui/material';
-import { Style, EmojiEvents, School, AutoAwesome, ArrowBack, LayersOutlined } from '@mui/icons-material';
+import { Style, EmojiEvents, School, AutoAwesome, ArrowBack, LayersOutlined, AccessTime } from '@mui/icons-material';
 import { fadeInUp, brandPillButton, glassShineHover } from '../../theme/glass';
 import { useTheme } from '@mui/material/styles';
 import { getFlashcardSets, getDueCards, submitReview, getSetStats } from '../../api/flashcards';
+import { formatDueDate } from '../../utils/dueDate';
 
 const QUALITY_LABELS = [
   { value: 0, label: 'No Idea', color: '#EF4444', bg: '#FEE2E2' },
@@ -100,26 +101,48 @@ export default function EmployeeFlashcardsPage() {
                         <Typography variant="caption" color="text.disabled" noWrap>{s.document_name}</Typography>
                       </Box>
                     </Box>
-                    <Box display="flex" gap={0.5} mb={2}>
+                    <Box display="flex" gap={0.5} mb={2} flexWrap="wrap">
                       <Chip label={`${s.num_cards} cards`} size="small" sx={{ fontSize: '0.65rem', height: 22, fontWeight: 600, bgcolor: 'action.hover', color: 'text.secondary' }} />
                       <Chip label={dc.label} size="small" sx={{ fontSize: '0.65rem', height: 22, fontWeight: 600, bgcolor: dc.bg, color: dc.color }} />
+                      {s.due_date && (
+                        <Chip
+                          icon={<AccessTime sx={{ fontSize: 12 }} />}
+                          label={s.overdue ? 'Due date closed' : `Due ${formatDueDate(s.due_date)}`}
+                          size="small"
+                          sx={{
+                            fontSize: '0.65rem', height: 22, fontWeight: 700,
+                            bgcolor: s.overdue ? theme.palette.custom.redTint : theme.palette.custom.amberTint,
+                            color: s.overdue ? '#DC2626' : '#D97706',
+                            '& .MuiChip-icon': { color: 'inherit' },
+                          }}
+                        />
+                      )}
                     </Box>
-                    <Button
-                      fullWidth variant="contained" size="small" onClick={() => startStudy(s)}
-                      sx={{
-                        background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
-                        borderRadius: '999px', py: 1,
-                        boxShadow: '0 6px 18px rgba(99,102,241,0.32)',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
-                          boxShadow: '0 10px 24px rgba(99,102,241,0.45)',
-                          transform: 'translateY(-1px)',
-                        },
-                      }}
-                    >
-                      Begin Session
-                    </Button>
+                    {s.overdue ? (
+                      <Button
+                        fullWidth variant="outlined" size="small" disabled
+                        sx={{ borderRadius: '999px', py: 1, fontWeight: 600, borderColor: 'divider', color: 'text.disabled' }}
+                      >
+                        Missed — Due Date Passed
+                      </Button>
+                    ) : (
+                      <Button
+                        fullWidth variant="contained" size="small" onClick={() => startStudy(s)}
+                        sx={{
+                          background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+                          borderRadius: '999px', py: 1,
+                          boxShadow: '0 6px 18px rgba(99,102,241,0.32)',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+                            boxShadow: '0 10px 24px rgba(99,102,241,0.45)',
+                            transform: 'translateY(-1px)',
+                          },
+                        }}
+                      >
+                        Begin Session
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>

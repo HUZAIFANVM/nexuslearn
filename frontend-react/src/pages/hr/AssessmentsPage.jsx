@@ -12,6 +12,7 @@ import { getAssessments, createAssessment, deleteAssessment, getAllResults } fro
 import { getDocuments } from '../../api/documents';
 import { getDepartments } from '../../api/auth';
 import { fadeInUp, brandPillButton, glassShineHover } from '../../theme/glass';
+import { formatDueDate } from '../../utils/dueDate';
 
 export default function AssessmentsPage() {
   const theme = useTheme();
@@ -21,7 +22,7 @@ export default function AssessmentsPage() {
   const [documents, setDocuments] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', document_id: '', assessment_type: 'mcq', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null });
+  const [form, setForm] = useState({ name: '', document_id: '', assessment_type: 'mcq', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null, due_date: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,7 +40,7 @@ export default function AssessmentsPage() {
     try {
       await createAssessment(form);
       setOpen(false);
-      setForm({ name: '', document_id: '', assessment_type: 'mcq', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null });
+      setForm({ name: '', document_id: '', assessment_type: 'mcq', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null, due_date: '' });
       load();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed');
@@ -129,6 +130,13 @@ export default function AssessmentsPage() {
                           '& .MuiChip-icon': { color: 'inherit' },
                         }}
                       />
+                      {a.due_date && (
+                        <Chip
+                          label={`Due ${formatDueDate(a.due_date)}`}
+                          size="small"
+                          sx={{ fontSize: '0.65rem', height: 22, fontWeight: 600, bgcolor: theme.palette.custom.amberTint, color: '#D97706' }}
+                        />
+                      )}
                     </Box>
                   </CardContent>
                 </Card>
@@ -250,6 +258,16 @@ export default function AssessmentsPage() {
             </FormControl>
           )}
           <TextField fullWidth label="Time Limit (minutes, optional)" type="number" value={form.time_limit_minutes || ''} onChange={(e) => setForm({ ...form, time_limit_minutes: e.target.value ? parseInt(e.target.value) : null })} margin="normal" />
+          <TextField
+            fullWidth
+            label="Due Date (optional)"
+            type="date"
+            value={form.due_date}
+            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+            helperText="Employees must complete it before end of this day (Pakistan time). Leave blank for no deadline."
+          />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>

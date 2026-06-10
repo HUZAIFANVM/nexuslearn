@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, time, timedelta
 from bson import ObjectId
 from bson.errors import InvalidId
 from pymongo import ReturnDocument
@@ -13,6 +13,27 @@ from assessments.services import generate_assessment_questions
 
 router = APIRouter(tags=["Assessments"])
 
+# Deadlines are interpreted in Pakistan Standard Time (UTC+5, no DST). A picked
+# calendar date closes at local midnight (end of that day in PKT).
+PKT_OFFSET = timedelta(hours=5)
+
+
+def _parse_due_date(value: Optional[str]) -> Optional[datetime]:
+    """Parse a due-date string (date or ISO datetime) into a naive UTC datetime
+    representing end-of-day Pakistan time, so it compares correctly with
+    datetime.utcnow(). Returns None when no due date is set."""
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid due_date format")
+    if dt.tzinfo:
+        dt = dt.replace(tzinfo=None)
+    # End of the picked day in PKT, converted to naive UTC for storage/compare.
+    end_of_day_pkt = datetime.combine(dt.date(), time(23, 59, 59))
+    return end_of_day_pkt - PKT_OFFSET
+
 
 class AssessmentCreate(BaseModel):
     document_id: str
@@ -23,6 +44,7 @@ class AssessmentCreate(BaseModel):
     departments: Optional[List[str]] = None
     access_type: str = "all"
     time_limit_minutes: Optional[int] = None
+    due_date: Optional[str] = None  # calendar date (PKT); closes end-of-day
 
 
 class AnswerSubmit(BaseModel):
@@ -128,6 +150,7 @@ async def create_assessment(
         "created_at": datetime.utcnow(),
         "is_active": True,
         "time_limit_minutes": data.time_limit_minutes,
+        "due_date": _parse_due_date(data.due_date),
     }
     result = assessments_collection.insert_one(assessment_doc)
 
@@ -188,6 +211,7 @@ async def list_assessments(current_user: dict = Depends(get_current_user)):
             "created_by": a["created_by"],
             "created_at": a["created_at"],
             "time_limit_minutes": a.get("time_limit_minutes"),
+            "due_date": a.get("due_date"),
         }
         prior = results_by_assessment.get(aid)
         if prior:
@@ -197,6 +221,9 @@ async def list_assessments(current_user: dict = Depends(get_current_user)):
             item["result_percentage"] = prior["percentage"]
         else:
             item["completed"] = False
+        # Overdue = has a due date that's passed and the employee never completed it.
+        due = a.get("due_date")
+        item["overdue"] = bool(due and not prior and datetime.utcnow() > due)
         out.append(item)
     return out
 
@@ -213,6 +240,20 @@ async def get_assessment(assessment_id: str, current_user: dict = Depends(get_cu
         user_dept = current_user.get("department")
         if not user_dept or user_dept not in assessment.get("departments", []):
             raise HTTPException(status_code=403, detail="Access denied")
+
+    # Block starting an overdue assessment the employee never completed.
+    if current_user["role"] == "employee":
+        due = assessment.get("due_date")
+        if due and datetime.utcnow() > due:
+            already = assessment_results_collection.find_one({
+                "user_id": str(current_user["_id"]),
+                "assessment_id": str(assessment["_id"]),
+            })
+            if not already:
+                raise HTTPException(
+                    status_code=403,
+                    detail="The due date for this assessment has passed.",
+                )
 
     questions = assessment["questions"]
     # For employees, strip correct answers
@@ -256,6 +297,7 @@ async def get_assessment(assessment_id: str, current_user: dict = Depends(get_cu
         "num_questions": assessment["num_questions"],
         "questions": questions,
         "time_limit_minutes": assessment.get("time_limit_minutes"),
+        "due_date": assessment.get("due_date"),
         "attempt_started_at": attempt_started_at,
         "created_at": assessment["created_at"],
     }
@@ -289,6 +331,15 @@ async def submit_assessment(
         raise HTTPException(
             status_code=400,
             detail="You have already submitted this assessment"
+        )
+
+    # Block submitting after the due date (only matters for a first attempt;
+    # if they'd already submitted we'd have returned above).
+    due = assessment.get("due_date")
+    if current_user["role"] == "employee" and due and datetime.utcnow() > due:
+        raise HTTPException(
+            status_code=403,
+            detail="The due date for this assessment has passed.",
         )
 
     # Server-side time tracking. If the assessment is timed, compute the elapsed

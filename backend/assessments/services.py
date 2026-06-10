@@ -26,6 +26,18 @@ def _parse_llm_json(content: str) -> list:
     raise ValueError(f"Could not parse JSON from LLM response: {content[:300]}")
 
 
+def _normalize_question(q: dict):
+    """Best-effort cleanup so minor LLM formatting quirks don't get a good
+    question silently rejected (a common cause of under-count). Lowercases and
+    trims option ids + correct_answer_id so 'A' / ' a ' still matches 'a'."""
+    if isinstance(q.get("options"), list):
+        for opt in q["options"]:
+            if isinstance(opt, dict) and "id" in opt and isinstance(opt["id"], str):
+                opt["id"] = opt["id"].strip().lower()
+    if isinstance(q.get("correct_answer_id"), str):
+        q["correct_answer_id"] = q["correct_answer_id"].strip().lower()
+
+
 def _validate_question(q: dict, expected_type: str = None):
     """Validate that a question has all required fields and correct structure."""
     required = {"type", "question", "options", "correct_answer_id", "explanation"}
@@ -61,48 +73,72 @@ def _deduplicate_questions(questions: list) -> list:
     return unique
 
 
-def _generate_questions_with_retry(prompt: str, expected_type: str, num_requested: int, max_retries: int = 2) -> list:
-    """Generate questions with retry if LLM returns fewer than requested."""
-    all_questions = []
+def _generate_questions_with_retry(prompt: str, expected_type: str, num_requested: int, max_retries: int = 5) -> list:
+    """Generate questions, retrying until we have num_requested UNIQUE, VALID ones.
+
+    Small models routinely return fewer questions than asked, return duplicates,
+    or emit malformed JSON on an attempt. So we:
+      - deduplicate *inside* the loop (not after) so dupes never count toward the
+        target and then get stripped, leaving us short;
+      - treat a malformed/failed attempt as 0 questions and keep going instead of
+        aborting the whole generation;
+      - on each retry, tell the model exactly which questions already exist so it
+        produces genuinely new ones rather than regenerating the same set.
+    """
+    collected = []
+    seen = set()
 
     for attempt in range(max_retries + 1):
-        remaining = num_requested - len(all_questions)
+        remaining = num_requested - len(collected)
         if remaining <= 0:
             break
 
-        # On retry, adjust the prompt to ask for only the remaining count
-        if attempt > 0:
-            # Replace the num_questions in the prompt for retry
-            retry_prompt = prompt.replace(
-                f"generate {num_requested} UNIQUE",
-                f"generate {remaining} UNIQUE"
-            ).replace(
-                f"exactly {num_requested} items",
-                f"exactly {remaining} items"
-            )
-            # Also add emphasis
-            retry_prompt += f"\n\nIMPORTANT: You MUST return EXACTLY {remaining} questions. Not fewer, not more."
+        if attempt == 0:
+            current_prompt = prompt
         else:
-            retry_prompt = prompt
+            # Append a strong override + the list of questions already produced so
+            # the model returns DIFFERENT ones. We append rather than rewrite the
+            # body so we never accidentally alter numbers inside the document text.
+            already = "\n".join(f"- {q['question']}" for q in collected)
+            current_prompt = (
+                f"{prompt}\n\n"
+                f"You have ALREADY created these questions — do NOT repeat or rephrase any of them:\n"
+                f"{already}\n\n"
+                f"Now return EXACTLY {remaining} ADDITIONAL question(s) that are completely "
+                f"different from the ones above. Output ONLY a JSON array of {remaining} new "
+                f"question object(s) — no fewer, no more."
+            )
 
-        response = global_llm.invoke(retry_prompt)
-        questions = _parse_llm_json(response.content)
+        # A bad attempt (LLM error or unparseable JSON) must not abort the whole run.
+        try:
+            response = global_llm.invoke(current_prompt)
+            questions = _parse_llm_json(response.content)
+        except Exception:
+            continue
 
-        # Handle case where LLM returns a single object instead of array
+        # Handle case where LLM returns a single object instead of an array
         if isinstance(questions, dict):
             questions = [questions]
+        if not isinstance(questions, list):
+            continue
 
-        valid = []
         for q in questions:
+            if not isinstance(q, dict):
+                continue
+            _normalize_question(q)
             try:
                 _validate_question(q, expected_type=expected_type)
-                valid.append(q)
-            except ValueError:
+            except (ValueError, KeyError, TypeError):
                 continue
+            key = q["question"].strip().lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            collected.append(q)
+            if len(collected) >= num_requested:
+                break
 
-        all_questions.extend(valid)
-
-    return all_questions[:num_requested]
+    return collected[:num_requested]
 
 
 def generate_assessment_questions(

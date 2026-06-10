@@ -9,7 +9,7 @@ import {
   Timer, People, TrendingUp, Psychology, LightbulbOutlined,
   CheckCircle, ArrowForward, AutoAwesome, Shield, Speed, Insights,
   ExpandMore, HelpOutline, AdminPanelSettings, Badge as BadgeIcon, Person,
-  Add, Remove, Lock, ChatBubbleOutline,
+  Add, Remove, Lock, ChatBubbleOutline, Description, EmojiEvents, Cancel,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../contexts/AuthContext';
@@ -105,6 +105,7 @@ const personas = [
     bullets: [
       'Chat with company knowledge in plain English',
       'Review SM-2 spaced cards when they are due',
+      'Take skill assessments and see your score instantly',
       'Follow a roadmap that adapts as you grow',
     ],
   },
@@ -588,56 +589,8 @@ export default function LandingPage() {
             Three roles, each with a workspace shaped around what they actually do.
           </Typography>
         </Box>
-        <Container maxWidth="lg">
-          <Grid container spacing={3}>
-            {personas.map((p, idx) => (
-              <Grid item xs={12} md={4} key={p.role} sx={{ ...revealOnScroll(personasInView, idx * 120) }}>
-                <Box sx={{
-                  ...glassCard(theme),
-                  p: { xs: 3, md: 3.5 }, borderRadius: '20px',
-                  height: '100%',
-                  display: 'flex', flexDirection: 'column',
-                  transition: 'transform 0.35s cubic-bezier(0.34,1.4,0.64,1), border-color 0.3s ease, box-shadow 0.35s ease',
-                  '&:hover': {
-                    transform: 'translateY(-6px)',
-                    borderColor: `${p.color}55`,
-                    boxShadow: `0 24px 60px -18px ${p.color}40`,
-                  },
-                  '&:hover .nl-persona-icon': {
-                    transform: 'scale(1.08) rotate(-4deg)',
-                  },
-                }}>
-                  <Box className="nl-persona-icon" sx={{
-                    width: 52, height: 52, borderRadius: '14px',
-                    background: `linear-gradient(135deg, ${p.color} 0%, ${p.color}AA 100%)`,
-                    color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    mb: 2.5,
-                    boxShadow: `0 10px 24px ${p.color}55`,
-                    transition: 'transform 0.45s cubic-bezier(0.34,1.6,0.64,1)',
-                  }}>
-                    {p.icon}
-                  </Box>
-                  <Typography variant="h6" fontWeight={700} color="text.primary" mb={1} fontSize="1.15rem">
-                    {p.role}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
-                    {p.blurb}
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 'auto', pt: 1 }}>
-                    {p.bullets.map((b) => (
-                      <Box key={b} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                        <CheckCircle sx={{ fontSize: 16, color: p.color, mt: '2px', flexShrink: 0 }} />
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.88rem', lineHeight: 1.5 }}>
-                          {b}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
+        <Container maxWidth="lg" sx={{ ...revealOnScroll(personasInView, 0) }}>
+          <PersonaTabs personas={personas} />
         </Container>
       </Box>
 
@@ -954,6 +907,216 @@ export default function LandingPage() {
         </Container>
       </Box>
 
+      </Box>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* PersonaMock — small white UI preview shown on the gradient panel     */
+/* ------------------------------------------------------------------ */
+function PersonaMock({ role }) {
+  const shell = {
+    background: 'rgba(255,255,255,0.97)',
+    borderRadius: '16px',
+    p: 2,
+    boxShadow: '0 24px 60px -20px rgba(0,0,0,0.45)',
+    color: '#0F172A',
+  };
+
+  if (role === 'Super Admin') {
+    const pending = ['Ayesha Khan', 'Bilal Ahmed'];
+    return (
+      <Box sx={shell}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>Pending HR approvals</Typography>
+          <Chip label="2 new" size="small" sx={{ height: 20, fontSize: '0.62rem', fontWeight: 700, bgcolor: '#EEF2FF', color: '#6366F1' }} />
+        </Box>
+        {pending.map((name) => (
+          <Box key={name} sx={{ display: 'flex', alignItems: 'center', gap: 1.2, py: 1, borderTop: '1px solid #EEF1F6' }}>
+            <Box sx={{ width: 30, height: 30, borderRadius: '50%', bgcolor: '#EEF2FF', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
+              {name[0]}
+            </Box>
+            <Typography sx={{ flex: 1, minWidth: 0, fontSize: '0.8rem', fontWeight: 600 }}>{name}</Typography>
+            <Box sx={{ px: 1.2, py: 0.4, borderRadius: '999px', fontSize: '0.66rem', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>Approve</Box>
+            <Box sx={{ px: 1.2, py: 0.4, borderRadius: '999px', fontSize: '0.66rem', fontWeight: 700, color: '#64748B', border: '1px solid #E2E8F0' }}>Deny</Box>
+          </Box>
+        ))}
+      </Box>
+    );
+  }
+
+  if (role === 'HR / L&D') {
+    const artifacts = [
+      { icon: <SmartToy sx={{ fontSize: 14 }} />, label: 'Assistant', c: '#3B82F6' },
+      { icon: <Style sx={{ fontSize: 14 }} />, label: 'Cards', c: '#8B5CF6' },
+      { icon: <Quiz sx={{ fontSize: 14 }} />, label: 'Tests', c: '#10B981' },
+      { icon: <Route sx={{ fontSize: 14 }} />, label: 'Roadmap', c: '#F59E0B' },
+    ];
+    return (
+      <Box sx={shell}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+          <Description sx={{ fontSize: 18, color: '#3B82F6' }} />
+          <Typography sx={{ fontWeight: 700, fontSize: '0.82rem' }}>Onboarding SOP.pdf</Typography>
+          <Chip label="processed" size="small" sx={{ ml: 'auto', height: 19, fontSize: '0.6rem', fontWeight: 700, bgcolor: '#ECFDF5', color: '#059669' }} />
+        </Box>
+        <Typography sx={{ fontSize: '0.68rem', color: '#64748B', mb: 1, textAlign: 'center' }}>
+          generated 4 artifacts
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+          {artifacts.map((a) => (
+            <Box key={a.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.8, px: 1.2, py: 1, borderRadius: '10px', bgcolor: `${a.c}10`, border: `1px solid ${a.c}25` }}>
+              <Box sx={{ width: 24, height: 24, borderRadius: '7px', bgcolor: a.c, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{a.icon}</Box>
+              <Typography sx={{ fontSize: '0.74rem', fontWeight: 600, color: '#1E293B' }}>{a.label}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    );
+  }
+
+  // Team Members — assessment result card
+  const review = [
+    { q: 'Incident reporting window?', ok: true },
+    { q: 'Data retention period?', ok: true },
+    { q: 'Vendor access policy?', ok: false },
+  ];
+  return (
+    <Box sx={shell}>
+      {/* Result header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1.5 }}>
+        <Box sx={{ width: 36, height: 36, borderRadius: '11px', background: 'linear-gradient(135deg,#10B981,#059669)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <EmojiEvents sx={{ fontSize: 19 }} />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.1 }}>Security Basics — passed</Typography>
+          <Typography sx={{ fontSize: '0.68rem', color: '#64748B' }}>Competency evaluation</Typography>
+        </Box>
+        <Box sx={{ textAlign: 'right' }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#10B981', lineHeight: 1 }}>9/10</Typography>
+          <Typography sx={{ fontSize: '0.62rem', color: '#64748B' }}>90% score</Typography>
+        </Box>
+      </Box>
+
+      {/* Score bar */}
+      <Box sx={{ height: 6, borderRadius: 3, bgcolor: '#E2E8F0', mb: 1.5, overflow: 'hidden' }}>
+        <Box sx={{ width: '90%', height: '100%', background: 'linear-gradient(90deg,#10B981,#34D399)' }} />
+      </Box>
+
+      {/* Per-question review */}
+      {review.map((r) => (
+        <Box key={r.q} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.6, borderTop: '1px solid #EEF1F6' }}>
+          {r.ok
+            ? <CheckCircle sx={{ fontSize: 16, color: '#10B981' }} />
+            : <Cancel sx={{ fontSize: 16, color: '#EF4444' }} />}
+          <Typography sx={{ fontSize: '0.76rem', fontWeight: 500, color: '#475569' }}>{r.q}</Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* PersonaTabs — Docebo-style tabbed panel (brand-themed)              */
+/* ------------------------------------------------------------------ */
+function PersonaTabs({ personas }) {
+  const theme = useTheme();
+  const [active, setActive] = useState(0);
+  const p = personas[active];
+
+  return (
+    <Box>
+      {/* Tab strip */}
+      <Box sx={{ display: 'flex', gap: { xs: 0.5, md: 1 } }}>
+        {personas.map((persona, i) => {
+          const on = i === active;
+          const shortLabel = persona.role.split(' ')[0]; // Super, HR, Team
+          return (
+            <Box
+              key={persona.role}
+              onMouseEnter={() => setActive(i)}
+              onClick={() => setActive(i)}
+              role="button"
+              aria-pressed={on}
+              sx={{
+                flex: 1, minWidth: 0,
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center', justifyContent: 'center', gap: { xs: 0.4, md: 1 },
+                px: { xs: 0.75, md: 2 }, py: { xs: 1.25, md: 1.9 },
+                cursor: 'pointer',
+                borderRadius: '16px 16px 0 0',
+                color: on ? '#fff' : 'text.secondary',
+                background: on
+                  ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)'
+                  : (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)'),
+                border: '1px solid',
+                borderColor: on ? 'transparent' : 'divider',
+                borderBottom: 'none',
+                transition: 'all 0.3s ease',
+                '&:hover': on ? {} : { color: '#6366F1', background: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.06)') },
+              }}
+            >
+              <Box sx={{ display: 'flex', '& svg': { fontSize: { xs: 18, md: 18 } } }}>{persona.icon}</Box>
+              {/* Full label on sm+, short label on phones */}
+              <Typography sx={{
+                display: { xs: 'none', sm: 'block' },
+                fontSize: { sm: '0.72rem', md: '0.8rem' },
+                fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}>
+                {persona.role}
+              </Typography>
+              <Typography sx={{
+                display: { xs: 'block', sm: 'none' },
+                fontSize: '0.6rem',
+                fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}>
+                {shortLabel}
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
+
+      {/* Active panel */}
+      <Box sx={{
+        position: 'relative', overflow: 'hidden',
+        borderRadius: '0 0 24px 24px',
+        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 55%, #8B5CF6 100%)',
+        p: { xs: 3, md: 5 },
+        color: '#fff',
+      }}>
+        {/* soft glow */}
+        <Box aria-hidden sx={{ position: 'absolute', top: -120, right: -120, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <Grid container spacing={{ xs: 3, md: 5 }} alignItems="center" sx={{ position: 'relative' }}>
+          <Grid item xs={12} md={6}>
+            <Box key={active} sx={{ animation: 'nl-persona-fade 0.4s ease', '@keyframes nl-persona-fade': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
+              <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: '-0.02em', mb: 1.5, fontSize: { xs: '1.6rem', md: '2.1rem' } }}>
+                {p.role}
+              </Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.85)', mb: 2.5, lineHeight: 1.6, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
+                {p.blurb}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+                {p.bullets.map((b) => (
+                  <Box key={b} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
+                    <CheckCircle sx={{ fontSize: 18, color: '#fff', mt: '1px', flexShrink: 0, opacity: 0.95 }} />
+                    <Typography sx={{ fontSize: { xs: '0.88rem', md: '0.95rem' }, lineHeight: 1.5, color: 'rgba(255,255,255,0.92)' }}>
+                      {b}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box key={`mock-${active}`} sx={{ animation: 'nl-persona-fade 0.45s ease 0.05s both', '@keyframes nl-persona-fade': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
+              <PersonaMock role={p.role} />
+            </Box>
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );

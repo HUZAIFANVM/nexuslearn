@@ -25,11 +25,23 @@ class Settings(BaseSettings):
     PINECONE_INDEX_NAME: str = "nexuslearn"
 
     DEPARTMENTS: list = [
+        # Engineering & Data
         "Data Engineer",
         "AI Engineer",
         "Software Engineer",
         "QA Engineer",
         "Data Analyst",
+        "DevOps / Infrastructure",
+        "IT / Support",
+        "Security",
+        # Product & Design
+        "Product Management",
+        "Design / UX",
+        # Go-to-market
+        "Sales",
+        "Marketing",
+        "Customer Success",
+        "Customer Support",
     ]
 
     # Email (SMTP) settings

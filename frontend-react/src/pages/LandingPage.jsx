@@ -913,15 +913,34 @@ export default function LandingPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/* PersonaMock — small white UI preview shown on the gradient panel     */
+/* PersonaMock — frosted-glass UI preview shown on the gradient panel   */
 /* ------------------------------------------------------------------ */
 function PersonaMock({ role }) {
+  const theme = useTheme();
+  const dark = theme.palette.mode === 'dark';
+
+  // Theme-aware tokens so the glass reads well in both modes (the card always
+  // sits on the indigo/purple panel, so we frost light-on-light or light-on-dark).
+  const ink = dark ? '#F8FAFC' : '#0F172A';
+  const sub = dark ? 'rgba(248,250,252,0.62)' : '#64748B';
+  const body = dark ? 'rgba(248,250,252,0.82)' : '#475569';
+  const line = dark ? 'rgba(255,255,255,0.12)' : 'rgba(15,23,42,0.07)';
+  const chipBg = dark ? 'rgba(129,140,248,0.26)' : 'rgba(99,102,241,0.12)';
+  const chipFg = dark ? '#C7D2FE' : '#6366F1';
+  const track = dark ? 'rgba(255,255,255,0.14)' : '#E2E8F0';
+
   const shell = {
-    background: 'rgba(255,255,255,0.97)',
-    borderRadius: '16px',
+    background: dark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.72)',
+    backdropFilter: 'blur(22px) saturate(160%)',
+    WebkitBackdropFilter: 'blur(22px) saturate(160%)',
+    border: '1px solid',
+    borderColor: dark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.75)',
+    borderRadius: '18px',
     p: 2,
-    boxShadow: '0 24px 60px -20px rgba(0,0,0,0.45)',
-    color: '#0F172A',
+    color: ink,
+    boxShadow: dark
+      ? '0 24px 60px -22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)'
+      : '0 24px 60px -22px rgba(49,46,129,0.40), inset 0 1px 0 rgba(255,255,255,0.85)',
   };
 
   if (role === 'Super Admin') {
@@ -929,17 +948,17 @@ function PersonaMock({ role }) {
     return (
       <Box sx={shell}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-          <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>Pending HR approvals</Typography>
-          <Chip label="2 new" size="small" sx={{ height: 20, fontSize: '0.62rem', fontWeight: 700, bgcolor: '#EEF2FF', color: '#6366F1' }} />
+          <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: ink }}>Pending HR approvals</Typography>
+          <Chip label="2 new" size="small" sx={{ height: 20, fontSize: '0.62rem', fontWeight: 700, bgcolor: chipBg, color: chipFg }} />
         </Box>
         {pending.map((name) => (
-          <Box key={name} sx={{ display: 'flex', alignItems: 'center', gap: 1.2, py: 1, borderTop: '1px solid #EEF1F6' }}>
-            <Box sx={{ width: 30, height: 30, borderRadius: '50%', bgcolor: '#EEF2FF', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
+          <Box key={name} sx={{ display: 'flex', alignItems: 'center', gap: 1.2, py: 1, borderTop: `1px solid ${line}` }}>
+            <Box sx={{ width: 30, height: 30, borderRadius: '50%', bgcolor: chipBg, color: chipFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
               {name[0]}
             </Box>
-            <Typography sx={{ flex: 1, minWidth: 0, fontSize: '0.8rem', fontWeight: 600 }}>{name}</Typography>
+            <Typography sx={{ flex: 1, minWidth: 0, fontSize: '0.8rem', fontWeight: 600, color: ink }}>{name}</Typography>
             <Box sx={{ px: 1.2, py: 0.4, borderRadius: '999px', fontSize: '0.66rem', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>Approve</Box>
-            <Box sx={{ px: 1.2, py: 0.4, borderRadius: '999px', fontSize: '0.66rem', fontWeight: 700, color: '#64748B', border: '1px solid #E2E8F0' }}>Deny</Box>
+            <Box sx={{ px: 1.2, py: 0.4, borderRadius: '999px', fontSize: '0.66rem', fontWeight: 700, color: sub, border: `1px solid ${line}` }}>Deny</Box>
           </Box>
         ))}
       </Box>
@@ -956,18 +975,18 @@ function PersonaMock({ role }) {
     return (
       <Box sx={shell}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-          <Description sx={{ fontSize: 18, color: '#3B82F6' }} />
-          <Typography sx={{ fontWeight: 700, fontSize: '0.82rem' }}>Onboarding SOP.pdf</Typography>
-          <Chip label="processed" size="small" sx={{ ml: 'auto', height: 19, fontSize: '0.6rem', fontWeight: 700, bgcolor: '#ECFDF5', color: '#059669' }} />
+          <Description sx={{ fontSize: 18, color: dark ? '#93C5FD' : '#3B82F6' }} />
+          <Typography sx={{ fontWeight: 700, fontSize: '0.82rem', color: ink }}>Onboarding SOP.pdf</Typography>
+          <Chip label="processed" size="small" sx={{ ml: 'auto', height: 19, fontSize: '0.6rem', fontWeight: 700, bgcolor: dark ? 'rgba(16,185,129,0.24)' : '#ECFDF5', color: dark ? '#6EE7B7' : '#059669' }} />
         </Box>
-        <Typography sx={{ fontSize: '0.68rem', color: '#64748B', mb: 1, textAlign: 'center' }}>
+        <Typography sx={{ fontSize: '0.68rem', color: sub, mb: 1, textAlign: 'center' }}>
           generated 4 artifacts
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
           {artifacts.map((a) => (
-            <Box key={a.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.8, px: 1.2, py: 1, borderRadius: '10px', bgcolor: `${a.c}10`, border: `1px solid ${a.c}25` }}>
+            <Box key={a.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.8, px: 1.2, py: 1, borderRadius: '10px', bgcolor: dark ? `${a.c}26` : `${a.c}12`, border: `1px solid ${a.c}${dark ? '44' : '25'}` }}>
               <Box sx={{ width: 24, height: 24, borderRadius: '7px', bgcolor: a.c, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{a.icon}</Box>
-              <Typography sx={{ fontSize: '0.74rem', fontWeight: 600, color: '#1E293B' }}>{a.label}</Typography>
+              <Typography sx={{ fontSize: '0.74rem', fontWeight: 600, color: ink }}>{a.label}</Typography>
             </Box>
           ))}
         </Box>
@@ -983,33 +1002,30 @@ function PersonaMock({ role }) {
   ];
   return (
     <Box sx={shell}>
-      {/* Result header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1.5 }}>
         <Box sx={{ width: 36, height: 36, borderRadius: '11px', background: 'linear-gradient(135deg,#10B981,#059669)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <EmojiEvents sx={{ fontSize: 19 }} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.1 }}>Security Basics — passed</Typography>
-          <Typography sx={{ fontSize: '0.68rem', color: '#64748B' }}>Competency evaluation</Typography>
+          <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.1, color: ink }}>Security Basics — passed</Typography>
+          <Typography sx={{ fontSize: '0.68rem', color: sub }}>Competency evaluation</Typography>
         </Box>
         <Box sx={{ textAlign: 'right' }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#10B981', lineHeight: 1 }}>9/10</Typography>
-          <Typography sx={{ fontSize: '0.62rem', color: '#64748B' }}>90% score</Typography>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: dark ? '#34D399' : '#10B981', lineHeight: 1 }}>9/10</Typography>
+          <Typography sx={{ fontSize: '0.62rem', color: sub }}>90% score</Typography>
         </Box>
       </Box>
 
-      {/* Score bar */}
-      <Box sx={{ height: 6, borderRadius: 3, bgcolor: '#E2E8F0', mb: 1.5, overflow: 'hidden' }}>
+      <Box sx={{ height: 6, borderRadius: 3, bgcolor: track, mb: 1.5, overflow: 'hidden' }}>
         <Box sx={{ width: '90%', height: '100%', background: 'linear-gradient(90deg,#10B981,#34D399)' }} />
       </Box>
 
-      {/* Per-question review */}
       {review.map((r) => (
-        <Box key={r.q} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.6, borderTop: '1px solid #EEF1F6' }}>
+        <Box key={r.q} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.6, borderTop: `1px solid ${line}` }}>
           {r.ok
-            ? <CheckCircle sx={{ fontSize: 16, color: '#10B981' }} />
-            : <Cancel sx={{ fontSize: 16, color: '#EF4444' }} />}
-          <Typography sx={{ fontSize: '0.76rem', fontWeight: 500, color: '#475569' }}>{r.q}</Typography>
+            ? <CheckCircle sx={{ fontSize: 16, color: dark ? '#34D399' : '#10B981' }} />
+            : <Cancel sx={{ fontSize: 16, color: '#F87171' }} />}
+          <Typography sx={{ fontSize: '0.76rem', fontWeight: 500, color: body }}>{r.q}</Typography>
         </Box>
       ))}
     </Box>
@@ -1017,20 +1033,36 @@ function PersonaMock({ role }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* PersonaTabs — Docebo-style tabbed panel (brand-themed)              */
+/* PersonaTabs — modern segmented control + rounded glass-gradient panel */
 /* ------------------------------------------------------------------ */
 function PersonaTabs({ personas }) {
   const theme = useTheme();
+  const dark = theme.palette.mode === 'dark';
   const [active, setActive] = useState(0);
   const p = personas[active];
 
+  const SKEW = 22; // px of diagonal on each tab edge
   return (
-    <Box>
-      {/* Tab strip */}
-      <Box sx={{ display: 'flex', gap: { xs: 0.5, md: 1 } }}>
+    <Box sx={{
+      borderRadius: { xs: '20px', md: '26px' },
+      overflow: 'hidden',
+      boxShadow: dark
+        ? '0 40px 90px -40px rgba(0,0,0,0.7)'
+        : '0 40px 90px -40px rgba(76,29,149,0.45)',
+    }}>
+      {/* Angled folder-tab strip — slanted dividers tessellate into the panel */}
+      <Box sx={{ display: 'flex', position: 'relative', zIndex: 1 }}>
         {personas.map((persona, i) => {
           const on = i === active;
-          const shortLabel = persona.role.split(' ')[0]; // Super, HR, Team
+          const first = i === 0;
+          const last = i === personas.length - 1;
+          const shortLabel = persona.role.split(' ')[0];
+          // Parallelogram clip so adjacent tabs interlock; ends stay square.
+          const clip = first
+            ? `polygon(0 0, 100% 0, calc(100% - ${SKEW}px) 100%, 0 100%)`
+            : last
+              ? `polygon(${SKEW}px 0, 100% 0, 100% 100%, 0 100%)`
+              : `polygon(${SKEW}px 0, 100% 0, calc(100% - ${SKEW}px) 100%, 0 100%)`;
           return (
             <Box
               key={persona.role}
@@ -1040,38 +1072,35 @@ function PersonaTabs({ personas }) {
               aria-pressed={on}
               sx={{
                 flex: 1, minWidth: 0,
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                alignItems: 'center', justifyContent: 'center', gap: { xs: 0.4, md: 1 },
-                px: { xs: 0.75, md: 2 }, py: { xs: 1.25, md: 1.9 },
-                cursor: 'pointer',
-                borderRadius: '16px 16px 0 0',
-                color: on ? '#fff' : 'text.secondary',
+                ml: first ? 0 : `-${SKEW}px`,
+                zIndex: on ? 3 : 2 - (i * 0.01),
+                clipPath: clip,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: { xs: 0.6, md: 1 },
+                pl: first ? { xs: 1, md: 2 } : `${SKEW + 6}px`,
+                pr: { xs: 1, md: 2 },
+                py: { xs: 1.5, md: 2 },
+                cursor: 'pointer', whiteSpace: 'nowrap',
+                color: on ? '#fff' : 'rgba(255,255,255,0.72)',
                 background: on
-                  ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)'
-                  : (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)'),
-                border: '1px solid',
-                borderColor: on ? 'transparent' : 'divider',
-                borderBottom: 'none',
-                transition: 'all 0.3s ease',
-                '&:hover': on ? {} : { color: '#6366F1', background: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.06)') },
+                  ? 'linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)'
+                  : 'linear-gradient(135deg, #4338CA 0%, #5B21B6 100%)',
+                transition: 'color 0.25s ease, background 0.35s ease',
+                '&:hover': on ? {} : { color: '#fff' },
+                '& svg': { fontSize: { xs: 16, md: 18 } },
               }}
             >
-              <Box sx={{ display: 'flex', '& svg': { fontSize: { xs: 18, md: 18 } } }}>{persona.icon}</Box>
-              {/* Full label on sm+, short label on phones */}
+              {persona.icon}
               <Typography sx={{
                 display: { xs: 'none', sm: 'block' },
                 fontSize: { sm: '0.72rem', md: '0.8rem' },
-                fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
               }}>
                 {persona.role}
               </Typography>
               <Typography sx={{
                 display: { xs: 'block', sm: 'none' },
-                fontSize: '0.6rem',
-                fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
+                fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase',
               }}>
                 {shortLabel}
               </Typography>
@@ -1080,16 +1109,19 @@ function PersonaTabs({ personas }) {
         })}
       </Box>
 
-      {/* Active panel */}
+      {/* Active panel — connected directly under the tabs */}
       <Box sx={{
         position: 'relative', overflow: 'hidden',
-        borderRadius: '0 0 24px 24px',
-        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 55%, #8B5CF6 100%)',
+        mt: '-1px',
+        background: dark
+          ? 'linear-gradient(135deg, #5B21B6 0%, #6D28D9 55%, #7C3AED 100%)'
+          : 'linear-gradient(135deg, #6D28D9 0%, #7C3AED 55%, #8B5CF6 100%)',
         p: { xs: 3, md: 5 },
         color: '#fff',
       }}>
-        {/* soft glow */}
-        <Box aria-hidden sx={{ position: 'absolute', top: -120, right: -120, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        {/* soft glows */}
+        <Box aria-hidden sx={{ position: 'absolute', top: -140, right: -120, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.20) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <Box aria-hidden sx={{ position: 'absolute', bottom: -160, left: -120, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,0.30) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <Grid container spacing={{ xs: 3, md: 5 }} alignItems="center" sx={{ position: 'relative' }}>
           <Grid item xs={12} md={6}>
             <Box key={active} sx={{ animation: 'nl-persona-fade 0.4s ease', '@keyframes nl-persona-fade': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>

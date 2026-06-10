@@ -17,7 +17,7 @@ const UNCOVER_MS = 190;
 const TRAIL_LAG_MS = 30;
 const DEFAULT_STAGGER = 138;
 
-function HeadingLine({ text, startDelay, triggered, leadBar, trailBar }) {
+function HeadingLine({ text, startDelay, triggered, leadBar, trailBar, gradient }) {
   // 0 = idle, 1 = covering, 2 = uncovering, 3 = done
   const [phase, setPhase] = useState(0);
 
@@ -66,6 +66,12 @@ function HeadingLine({ text, startDelay, triggered, leadBar, trailBar }) {
           whiteSpace: 'nowrap',
           opacity: spanVisible ? 1 : 0,
           '@media (prefers-reduced-motion: reduce)': { opacity: 1 },
+          ...(gradient ? {
+            background: 'linear-gradient(120deg, #60A5FA 0%, #818CF8 45%, #A78BFA 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          } : {}),
         }}
       >
         {text}
@@ -138,18 +144,24 @@ export default function AnimatedHeading({
 
   return (
     <Box ref={rootRef} component={component} sx={sx}>
-      {lines.map((line, i) => (
-        <Box key={i} component="span" sx={{ display: 'inline' }}>
-          <HeadingLine
-            text={line}
-            startDelay={delay + i * staggerMs}
-            triggered={triggered}
-            leadBar={leadBar}
-            trailBar={trailBar}
-          />
-          {i < lines.length - 1 && (lineBreaks ? <Box component="br" /> : ' ')}
-        </Box>
-      ))}
+      {lines.map((line, i) => {
+        // A line can be a plain string or { text, gradient }.
+        const text = typeof line === 'string' ? line : line.text;
+        const gradient = typeof line === 'string' ? false : !!line.gradient;
+        return (
+          <Box key={i} component="span" sx={{ display: 'inline' }}>
+            <HeadingLine
+              text={text}
+              gradient={gradient}
+              startDelay={delay + i * staggerMs}
+              triggered={triggered}
+              leadBar={leadBar}
+              trailBar={trailBar}
+            />
+            {i < lines.length - 1 && (lineBreaks ? <Box component="br" /> : ' ')}
+          </Box>
+        );
+      })}
     </Box>
   );
 }

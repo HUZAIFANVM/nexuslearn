@@ -216,8 +216,8 @@ export default function LandingPage() {
   // per line, so we swap to shorter copy below the `sm` breakpoint to avoid overflow.
   const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
   const headlineLines = isPhone
-    ? ['Train your team', 'on what you know.']
-    : ['Train your team on what', 'your company already knows.'];
+    ? ['Train your team', { text: 'on what you know.', gradient: true }]
+    : ['Train your team on what', { text: 'your company already knows.', gradient: true }];
 
   const [statsRef, statsInView] = useInView({ threshold: 0.3 });
   const [personasRef, personasInView] = useInView({ threshold: 0.2 });
@@ -316,7 +316,7 @@ export default function LandingPage() {
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         px: { xs: 3, md: 8 }, pb: { xs: 10, md: 12 },
-        gap: { xs: 5, md: 6 },
+        gap: { xs: 6, md: 7 },
         textAlign: 'center',
         overflow: 'hidden',
       }}>
@@ -335,7 +335,7 @@ export default function LandingPage() {
 
         {/* Copy + CTAs (centered) */}
         <Box sx={{
-          maxWidth: 820,
+          maxWidth: 860,
           position: 'relative', zIndex: 1,
         }}>
           <Chip
@@ -348,24 +348,24 @@ export default function LandingPage() {
               '& .MuiChip-icon': { color: '#4F46E5' },
             }}
           />
-          {/* Animated wipe-reveal headline */}
+          {/* Animated wipe-reveal headline — bigger, tighter, gradient accent line */}
           <AnimatedHeading
             lines={headlineLines}
             delay={600}
             staggerMs={140}
             sx={{
-              fontSize: { xs: '1.85rem', sm: '2.6rem', md: '3.6rem' },
+              fontSize: { xs: '2.1rem', sm: '3rem', md: '4.1rem' },
               fontWeight: 800,
-              letterSpacing: '-0.025em',
-              lineHeight: 1.08,
+              letterSpacing: '-0.035em',
+              lineHeight: 1.04,
               mb: 3,
               color: 'text.primary',
               '& > span > span': { fontFamily: 'inherit' },
             }}
           />
           <Typography variant="body1" sx={{
-            color: 'text.secondary', mb: 4, fontSize: { xs: '1rem', md: '1.1rem' },
-            maxWidth: 600, lineHeight: 1.7, mx: 'auto',
+            color: 'text.secondary', mb: 4, fontSize: { xs: '1rem', md: '1.15rem' },
+            maxWidth: 620, lineHeight: 1.65, mx: 'auto',
           }}>
             Upload your SOPs, policies, and training materials. NexusLearn instantly turns each one into a Knowledge Assistant, Retention Training cards, Competency Evaluations, and a Growth Roadmap — for every employee on your team.
           </Typography>

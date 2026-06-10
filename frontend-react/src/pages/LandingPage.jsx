@@ -1050,14 +1050,17 @@ function PersonaTabs({ personas }) {
         ? '0 40px 90px -40px rgba(0,0,0,0.7)'
         : '0 40px 90px -40px rgba(76,29,149,0.45)',
     }}>
-      {/* Angled folder-tab strip — slanted dividers tessellate into the panel */}
-      <Box sx={{ display: 'flex', position: 'relative', zIndex: 1 }}>
+      {/* Angled folder-tab strip — glass tabs, brand-gradient active, thin gaps */}
+      <Box sx={{
+        display: 'flex', position: 'relative', zIndex: 1,
+        gap: { xs: '4px', md: '6px' },
+      }}>
         {personas.map((persona, i) => {
           const on = i === active;
           const first = i === 0;
           const last = i === personas.length - 1;
           const shortLabel = persona.role.split(' ')[0];
-          // Parallelogram clip so adjacent tabs interlock; ends stay square.
+          // Parallelogram clip so the gaps between tabs read as diagonal lines.
           const clip = first
             ? `polygon(0 0, 100% 0, calc(100% - ${SKEW}px) 100%, 0 100%)`
             : last
@@ -1072,21 +1075,29 @@ function PersonaTabs({ personas }) {
               aria-pressed={on}
               sx={{
                 flex: 1, minWidth: 0,
-                ml: first ? 0 : `-${SKEW}px`,
-                zIndex: on ? 3 : 2 - (i * 0.01),
+                zIndex: on ? 3 : 2,
                 clipPath: clip,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: { xs: 0.6, md: 1 },
-                pl: first ? { xs: 1, md: 2 } : `${SKEW + 6}px`,
+                pl: first ? { xs: 1, md: 2 } : `${SKEW + 4}px`,
                 pr: { xs: 1, md: 2 },
                 py: { xs: 1.5, md: 2 },
                 cursor: 'pointer', whiteSpace: 'nowrap',
-                color: on ? '#fff' : 'rgba(255,255,255,0.72)',
+                color: on ? '#fff' : 'text.secondary',
                 background: on
-                  ? 'linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)'
-                  : 'linear-gradient(135deg, #4338CA 0%, #5B21B6 100%)',
-                transition: 'color 0.25s ease, background 0.35s ease',
-                '&:hover': on ? {} : { color: '#fff' },
+                  ? 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)'
+                  : (dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.55)'),
+                backdropFilter: 'blur(20px) saturate(160%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+                boxShadow: on ? '0 12px 28px -10px rgba(99,102,241,0.55)' : 'none',
+                transformOrigin: 'center bottom',
+                transform: on ? 'scale(1.03)' : 'scale(1)',
+                transition: 'color 0.25s ease, background 0.35s ease, transform 0.25s cubic-bezier(0.34,1.5,0.64,1)',
+                '&:hover': on ? {} : {
+                  color: dark ? '#A5B4FC' : '#4F46E5',
+                  background: dark ? 'rgba(99,102,241,0.16)' : 'rgba(99,102,241,0.12)',
+                  transform: 'scale(1.03)',
+                },
                 '& svg': { fontSize: { xs: 16, md: 18 } },
               }}
             >
@@ -1109,33 +1120,36 @@ function PersonaTabs({ personas }) {
         })}
       </Box>
 
-      {/* Active panel — connected directly under the tabs */}
+      {/* Active panel — glass surface that adapts to light/dark */}
       <Box sx={{
         position: 'relative', overflow: 'hidden',
         mt: '-1px',
         background: dark
-          ? 'linear-gradient(135deg, #5B21B6 0%, #6D28D9 55%, #7C3AED 100%)'
-          : 'linear-gradient(135deg, #6D28D9 0%, #7C3AED 55%, #8B5CF6 100%)',
+          ? 'linear-gradient(135deg, rgba(99,102,241,0.16) 0%, rgba(139,92,246,0.18) 100%), rgba(17,24,39,0.62)'
+          : 'linear-gradient(135deg, rgba(99,102,241,0.10) 0%, rgba(139,92,246,0.12) 100%), rgba(255,255,255,0.55)',
+        backdropFilter: 'blur(24px) saturate(170%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(170%)',
+        borderTop: '1px solid',
+        borderColor: dark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.6)',
         p: { xs: 3, md: 5 },
-        color: '#fff',
       }}>
-        {/* soft glows */}
-        <Box aria-hidden sx={{ position: 'absolute', top: -140, right: -120, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.20) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <Box aria-hidden sx={{ position: 'absolute', bottom: -160, left: -120, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,0.30) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        {/* soft brand-tinted glows */}
+        <Box aria-hidden sx={{ position: 'absolute', top: -140, right: -120, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.20) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <Box aria-hidden sx={{ position: 'absolute', bottom: -160, left: -120, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <Grid container spacing={{ xs: 3, md: 5 }} alignItems="center" sx={{ position: 'relative' }}>
           <Grid item xs={12} md={6}>
             <Box key={active} sx={{ animation: 'nl-persona-fade 0.4s ease', '@keyframes nl-persona-fade': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
-              <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: '-0.02em', mb: 1.5, fontSize: { xs: '1.6rem', md: '2.1rem' } }}>
+              <Typography variant="h4" fontWeight={800} color="text.primary" sx={{ letterSpacing: '-0.02em', mb: 1.5, fontSize: { xs: '1.6rem', md: '2.1rem' } }}>
                 {p.role}
               </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.85)', mb: 2.5, lineHeight: 1.6, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
+              <Typography color="text.secondary" sx={{ mb: 2.5, lineHeight: 1.6, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
                 {p.blurb}
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
                 {p.bullets.map((b) => (
                   <Box key={b} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2 }}>
-                    <CheckCircle sx={{ fontSize: 18, color: '#fff', mt: '1px', flexShrink: 0, opacity: 0.95 }} />
-                    <Typography sx={{ fontSize: { xs: '0.88rem', md: '0.95rem' }, lineHeight: 1.5, color: 'rgba(255,255,255,0.92)' }}>
+                    <CheckCircle sx={{ fontSize: 18, color: p.color, mt: '1px', flexShrink: 0 }} />
+                    <Typography color="text.secondary" sx={{ fontSize: { xs: '0.88rem', md: '0.95rem' }, lineHeight: 1.5 }}>
                       {b}
                     </Typography>
                   </Box>

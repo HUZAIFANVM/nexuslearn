@@ -238,6 +238,11 @@ export default function AssessmentsPage() {
               <MenuItem value="general">General — policy / business knowledge</MenuItem>
               <MenuItem value="technical">Technical / Coding — engineering workshop (output, bug-fix, API choice)</MenuItem>
             </Select>
+            {form.question_style === 'technical' && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, ml: 1.5 }}>
+                For hands-on code questions, pick a document that contains code, commands, or config. A purely conceptual document yields concept-level technical questions instead.
+              </Typography>
+            )}
           </FormControl>
           <FormControl fullWidth margin="normal">
             <InputLabel>Proficiency Level</InputLabel>

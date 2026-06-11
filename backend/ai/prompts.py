@@ -75,10 +75,16 @@ Each question must test HANDS-ON technical understanding of the tech stack / too
 
 IMPORTANT RULES:
 - Each question MUST test a DIFFERENT concept — no duplicates
+- ADAPT TO THE DOCUMENT: If the document contains code, commands, or config, write hands-on
+  questions that USE that code (predict-the-output, spot-the-bug, choose-the-right-API/command).
+  If the document is conceptual with NO code, write technical questions about the concepts and
+  technologies it covers — you MAY illustrate with standard, widely-accepted syntax for
+  technologies the document EXPLICITLY names (e.g. a basic `useState` call if it mentions React
+  hooks), but do NOT invent project-specific APIs, flags, file names, version numbers, or values
+  that aren't in the document.
 - When a code snippet, command, or config is relevant, INCLUDE it in the question text using plain-text code formatting
 - Distribute correct answers randomly across a, b, c, d — do NOT make them all the same letter
 - All wrong options must be plausible (realistic mistakes an engineer might make), not obviously incorrect
-- Base questions strictly on the technologies and facts in the document — do not invent APIs, flags, or syntax not supported by the document
 
 Difficulty:
 - easy: Definitions, basic syntax, what a command/snippet does
@@ -115,10 +121,14 @@ Each question presents a realistic ENGINEERING situation (a failing build, a bug
 
 IMPORTANT RULES:
 - Each scenario MUST be distinct — different problems, different decisions
+- ADAPT TO THE DOCUMENT: If the document contains code, commands, or config, ground the scenarios
+  in it (failing builds, real error messages, misconfigurations). If the document is conceptual
+  with NO code, build scenarios around the practices and technologies it covers — you MAY use
+  standard, widely-accepted syntax/commands for technologies the document EXPLICITLY names, but do
+  NOT invent project-specific APIs, flags, file names, or values that aren't in the document.
 - Include relevant code, commands, error messages, or config in the scenario_context using plain-text code formatting where it helps
 - Distribute correct answers randomly across a, b, c, d — do NOT make them all the same letter
 - All wrong options must be plausible technical actions, not obviously incorrect
-- Base scenarios strictly on the technologies and practices in the document
 
 Difficulty:
 - easy: Common situations with a clear correct action from the document

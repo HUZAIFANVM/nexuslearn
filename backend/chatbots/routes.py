@@ -216,20 +216,16 @@ async def chat_with_bot_stream(
             pass  # Use original question if condense fails
 
     # Step 2: Retrieve relevant documents
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+    from chatbots.services import CHATBOT_RETRIEVER_K
+    retriever = vectorstore.as_retriever(search_kwargs={"k": CHATBOT_RETRIEVER_K})
     docs = retriever.get_relevant_documents(question)
     context = "\n\n".join(doc.page_content for doc in docs)
 
-    # Step 3: Build QA prompt using PromptTemplate and stream the answer
-    qa_template = PromptTemplate.from_template(
-        "Use the following pieces of context to answer the question. "
-        "If you don't know the answer, just say that you don't know. "
-        "Provide a helpful and detailed answer.\n\n"
-        "Context:\n{context}\n\n"
-        "Question: {question}\n"
-        "Answer:"
-    )
-    qa_prompt = qa_template.format(context=context, question=question)
+    # Step 3: Build the QA prompt and stream the answer. Use the SAME strict,
+    # grounded prompt as the non-streaming chain so behaviour is identical
+    # (answer only from context, refuse otherwise, quote numbers verbatim).
+    from ai.prompts import CHATBOT_QA_PROMPT
+    qa_prompt = CHATBOT_QA_PROMPT.format(context=context, question=question)
 
     callback = AsyncIteratorCallbackHandler()
 

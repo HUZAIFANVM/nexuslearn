@@ -3,8 +3,17 @@ from datetime import datetime
 # [FAISS-DISABLED] from documents.services import load_faiss_index_for_document
 from documents.services import get_pinecone_vectorstore_for_document
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
+from langchain_core.prompts import PromptTemplate
 from ai.llm import global_llm, streaming_llm
+from ai.prompts import CHATBOT_QA_PROMPT
 from database import chat_history_collection, chatbots_collection
+
+# Shared retrieval depth. Slightly higher than the old k=3 so a specific number/
+# figure that lives in one chunk is more likely to be retrieved.
+CHATBOT_RETRIEVER_K = 5
+
+# Strict grounded answer prompt, shared by the streaming path too.
+QA_PROMPT = PromptTemplate(template=CHATBOT_QA_PROMPT, input_variables=["context", "question"])
 
 # [FAISS-DISABLED] # FAISS cache: document_id -> vectorstore
 # [FAISS-DISABLED] faiss_cache = {}
@@ -54,9 +63,11 @@ def get_or_create_chain(chatbot_id: str, vectorstore, use_streaming: bool = Fals
     if chatbot_id not in cache:
         chain_kwargs = {
             "llm": llm,
-            "retriever": vectorstore.as_retriever(search_kwargs={"k": 3}),
+            "retriever": vectorstore.as_retriever(search_kwargs={"k": CHATBOT_RETRIEVER_K}),
             "return_source_documents": True,
             "verbose": False,
+            # Enforce strict grounding instead of LangChain's permissive default prompt.
+            "combine_docs_chain_kwargs": {"prompt": QA_PROMPT},
         }
         # For streaming: use non-streaming LLM for the condense question step
         # so the callback only captures tokens from the actual answer step

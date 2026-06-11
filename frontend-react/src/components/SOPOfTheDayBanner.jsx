@@ -44,7 +44,9 @@ export default function SOPOfTheDayBanner() {
         },
       }}
     >
-      {/* Header with brand gradient */}
+      {/* Header with brand gradient.
+          NOTE: overflow:hidden lives on the decorations layer below (not the
+          header itself) so a long AI-generated title is never clipped. */}
       <Box sx={{
         background: (t) => t.palette.mode === 'dark'
           ? 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.95) 60%, rgba(51,65,85,0.95) 100%)'
@@ -53,18 +55,20 @@ export default function SOPOfTheDayBanner() {
         px: 3,
         py: 2.5,
         position: 'relative',
-        overflow: 'hidden',
       }}>
-        <Box sx={{
-          position: 'absolute', top: -30, right: -30, width: 150, height: 150,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%)',
-        }} />
-        <Box sx={{
-          position: 'absolute', bottom: -20, right: 60, width: 100, height: 100,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)',
-        }} />
+        {/* Decorative circles, clipped to the header bounds only */}
+        <Box aria-hidden sx={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+          <Box sx={{
+            position: 'absolute', top: -30, right: -30, width: 150, height: 150,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%)',
+          }} />
+          <Box sx={{
+            position: 'absolute', bottom: -20, right: 60, width: 100, height: 100,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)',
+          }} />
+        </Box>
 
         <IconButton
           onClick={handleDismiss}
@@ -98,7 +102,18 @@ export default function SOPOfTheDayBanner() {
               }}
             />
           </Box>
-          <Typography variant="h5" fontWeight={700} lineHeight={1.3}>
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            sx={{
+              lineHeight: 1.3,
+              // Scale down on narrow widths and wrap long words so the title
+              // is never cropped, however long the AI makes it.
+              fontSize: { xs: '1.15rem', sm: '1.35rem' },
+              wordBreak: 'break-word',
+              pr: 4, // keep clear of the close button
+            }}
+          >
             {sop.title}
           </Typography>
           <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', mt: 0.5, display: 'block' }}>

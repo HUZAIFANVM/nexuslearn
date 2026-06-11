@@ -65,6 +65,9 @@ Screenshot*.png
 _fyp_*.txt
 generate_analysis_pdf.py
 generate_testing_tools_pdf.py
+generate_system_docs_pdf.py
+NexusLearn_System_Documentation.pdf
+NexusLearn_System_Documentation.md
 perf/
 
 # Old Streamlit frontend (replaced by frontend-react/, kept locally for ref)

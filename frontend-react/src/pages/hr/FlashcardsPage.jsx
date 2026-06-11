@@ -19,7 +19,7 @@ export default function FlashcardsPage() {
   const [documents, setDocuments] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', access_type: 'all', departments: [], due_date: '' });
+  const [form, setForm] = useState({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', card_style: 'scenario', access_type: 'all', departments: [], due_date: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -38,7 +38,7 @@ export default function FlashcardsPage() {
       await createFlashcardSet(form);
       setSuccess('Training set generated successfully');
       setOpen(false);
-      setForm({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', access_type: 'all', departments: [], due_date: '' });
+      setForm({ name: '', document_id: '', num_cards: 10, difficulty: 'medium', card_style: 'scenario', access_type: 'all', departments: [], due_date: '' });
       load();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create training set');
@@ -165,6 +165,13 @@ export default function FlashcardsPage() {
             </Select>
           </FormControl>
           <TextField fullWidth label="Number of Cards" type="number" value={form.num_cards} onChange={(e) => setForm({ ...form, num_cards: parseInt(e.target.value) || 10 })} margin="normal" inputProps={{ min: 1, max: 30 }} />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Card Style</InputLabel>
+            <Select value={form.card_style} onChange={(e) => setForm({ ...form, card_style: e.target.value })} label="Card Style">
+              <MenuItem value="scenario">Workplace Scenario — situation → best practice (SOPs, policies)</MenuItem>
+              <MenuItem value="technical">Technical Workshop — concept → explanation → example (tech stacks)</MenuItem>
+            </Select>
+          </FormControl>
           <FormControl fullWidth margin="normal">
             <InputLabel>Proficiency Level</InputLabel>
             <Select value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })} label="Proficiency Level">

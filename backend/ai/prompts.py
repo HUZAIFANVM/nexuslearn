@@ -31,6 +31,38 @@ Document content:
 {document_text}
 """
 
+FLASHCARD_TECHNICAL_PROMPT = """You are a technical training instructor creating workshop-style flashcards to teach a tech stack / technical subject.
+
+Given this document, generate {num_cards} UNIQUE technical flashcards at {difficulty} level.
+
+Each card teaches ONE concrete concept, tool, command, or technique from the document — the way you'd cover it in a hands-on engineering workshop.
+
+IMPORTANT RULES:
+- Each card MUST cover a DISTINCT concept — no two cards on the same topic
+- Base all content strictly on the document — do not invent APIs, flags, or facts not in the document
+- The "example" must be a concrete, runnable-looking snippet, command, or usage drawn from the document (use real code/CLI/config formatting). If the document has no code, give a precise step-by-step usage example.
+- Vary categories across the different technical areas in the document
+
+Difficulty:
+- easy: Core concepts, definitions, and basic usage
+- medium: Practical application, common patterns, how pieces fit together
+- hard: Edge cases, gotchas, performance/security considerations, advanced usage
+
+Return ONLY valid JSON array with exactly {num_cards} items:
+[
+  {{
+    "category": "the technical area (e.g. 'React Hooks', 'Docker Networking')",
+    "concept": "The specific concept/tool/command being taught (short, like a card title)",
+    "explanation": "A clear explanation of what it is and how it works (2-4 sentences), grounded in the document.",
+    "example": "A concrete code snippet, CLI command, or config example demonstrating it.",
+    "key_takeaway": "One-sentence rule of thumb the learner should remember."
+  }}
+]
+
+Document content:
+{document_text}
+"""
+
 ASSESSMENT_MCQ_PROMPT = """You are a corporate training assessment creator.
 
 Given this document, generate {num_questions} UNIQUE multiple-choice questions at {difficulty} level.
@@ -179,25 +211,42 @@ Document content:
 
 LEARNING_PATH_PROMPT = """You are a corporate learning advisor analyzing an employee's performance data to produce an actionable growth roadmap.
 
-Assessment Results (name, score, total, percentage):
+PER-SUBJECT SKILL EVIDENCE — already aggregated from this employee's ACTUAL answers.
+This is your PRIMARY input. Each entry has: subject, mastery_label (weak / developing /
+strong / insufficient_data), assessment_accuracy_pct, questions_correct, questions_incorrect,
+missed_topics (the SPECIFIC question topics they got WRONG), strong_topics, flashcard_topics
+(the categories the cards cover), flashcard_mastered, flashcard_total, retention_rate:
+{skill_evidence}
+
+Raw assessment results (reference only — do NOT name a skill from these names):
 {assessment_data}
 
-Flashcard Performance (set_name, mastered, total, retention_rate):
+Raw flashcard performance (reference only):
 {flashcard_data}
 
 Available Documents:
 {available_documents}
 
 ANALYSIS INSTRUCTIONS:
-1. Identify specific SKILLS demonstrated by the data — not vague labels. Look at assessment names and flashcard set topics to infer domain skills.
-2. For each strength, cite the evidence (e.g. "Scored 90% on Safety Protocols assessment").
-3. For each weakness, assess severity (critical / moderate / minor) and describe the gap.
-4. Recommend documents to study, prioritized by weakness severity.
-5. Suggest 2-4 real-world PROJECT RECOMMENDATIONS — types of tasks or projects relevant to the employee's skill profile. For EACH project, assess assignment fitness:
+1. Derive every skill from the SKILL EVIDENCE — the `subject`, `missed_topics`,
+   `strong_topics`, and `flashcard_topics`. NEVER name a skill from an assessment or
+   flashcard-set NAME alone; names may be meaningless (e.g. "Quiz 1").
+2. EVIDENCE-GATED: every strength and weakness MUST quote a concrete data point in its
+   "evidence" field — the subject AND a specific topic AND a number, e.g.
+   "Missed 4 of 5 'rollback procedure' questions under 'Kubernetes Handbook' (60% accuracy)".
+   BANNED: generic phrases such as "good performance", "solid grasp", "needs improvement".
+3. ABSTAIN: if a subject's mastery_label is "insufficient_data" (only a name and a score,
+   no topics), do NOT invent a skill for it — omit it. Returning 2 well-grounded items is
+   better than 6 vague ones.
+4. Lead weaknesses with "weak" subjects, then "developing". Base each weakness on the
+   SPECIFIC missed_topics and set severity (critical / moderate / minor).
+5. Recommend documents to study, prioritized by weakness severity.
+6. Suggest 2-4 real-world PROJECT RECOMMENDATIONS relevant to the employee's skill profile.
+   For EACH project assess assignment fitness, and "fitness_rationale" MUST cite the specific
+   per-subject evidence behind it (mastery_label + a topic + a number):
    - "ready": Employee is STRONG in the required skills — assign directly, they can lead or own this.
    - "supervised": Employee is WEAK in some required skills — assign under supervision so they learn on the job.
    - "not_ready": Employee has CRITICAL gaps in required skills — do NOT assign yet, needs training first.
-   Base fitness on the employee's actual assessment scores and flashcard mastery for the relevant skills.
 
 Return ONLY valid JSON:
 {{

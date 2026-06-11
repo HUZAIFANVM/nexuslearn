@@ -35,6 +35,7 @@ class FlashcardSetCreate(BaseModel):
     name: str
     num_cards: int = 10
     difficulty: str = "medium"
+    card_style: str = "scenario"  # "scenario" (workplace) or "technical" (workshop)
     departments: Optional[List[str]] = None
     access_type: str = "all"
     due_date: Optional[str] = None  # calendar date (PKT); closes end-of-day
@@ -80,6 +81,9 @@ async def create_flashcard_set(
     if data.difficulty not in ["easy", "medium", "hard"]:
         raise HTTPException(status_code=400, detail="Difficulty must be easy, medium, or hard")
 
+    if data.card_style not in ["scenario", "technical"]:
+        raise HTTPException(status_code=400, detail="card_style must be 'scenario' or 'technical'")
+
     if data.num_cards < 1 or data.num_cards > 50:
         raise HTTPException(status_code=400, detail="num_cards must be between 1 and 50")
 
@@ -100,7 +104,7 @@ async def create_flashcard_set(
                 )
 
     try:
-        cards = generate_flashcards(text, data.num_cards, data.difficulty)
+        cards = generate_flashcards(text, data.num_cards, data.difficulty, data.card_style)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate flashcards: {str(e)}")
 
@@ -110,6 +114,7 @@ async def create_flashcard_set(
         "document_name": document["filename"],
         "num_cards": len(cards),
         "difficulty": data.difficulty,
+        "card_style": data.card_style,
         "cards": cards,
         "access_type": data.access_type,
         "departments": data.departments if data.access_type == "specific" else [],
@@ -133,6 +138,7 @@ async def create_flashcard_set(
         "document_name": document["filename"],
         "num_cards": len(cards),
         "difficulty": data.difficulty,
+        "card_style": data.card_style,
         "cards": cards,
         "created_at": flashcard_set["created_at"],
     }
@@ -170,6 +176,7 @@ async def list_flashcard_sets(current_user: dict = Depends(get_current_user)):
             "document_name": s["document_name"],
             "num_cards": s["num_cards"],
             "difficulty": s["difficulty"],
+            "card_style": s.get("card_style", "scenario"),
             "access_type": s.get("access_type", "all"),
             "created_by": s["created_by"],
             "created_at": s["created_at"],
@@ -198,6 +205,7 @@ async def get_flashcard_set(set_id: str, current_user: dict = Depends(get_curren
         "document_name": fset["document_name"],
         "num_cards": fset["num_cards"],
         "difficulty": fset["difficulty"],
+        "card_style": fset.get("card_style", "scenario"),
         "cards": fset["cards"],
         "created_by": fset["created_by"],
         "created_at": fset["created_at"],

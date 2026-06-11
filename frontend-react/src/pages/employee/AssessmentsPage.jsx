@@ -22,6 +22,17 @@ const difficultyConfig = {
   hard: { label: 'Advanced', color: '#EF4444', bg: '#FEE2E2' },
 };
 
+// The API stamps attempt_started_at with datetime.utcnow() and serializes it as
+// naive ISO (no trailing 'Z'). new Date() would read that as LOCAL time, so in
+// PKT (UTC+5) the parsed start is 5h off, making elapsed time blow past the
+// limit and pinning the countdown to 0:00. Force UTC by appending 'Z' when no
+// timezone is present. Returns epoch ms, or NaN for missing/invalid input.
+function parseServerUtc(ts) {
+  if (!ts) return NaN;
+  const iso = /[zZ]|[+-]\d\d:?\d\d$/.test(ts) ? ts : `${ts}Z`;
+  return new Date(iso).getTime();
+}
+
 export default function EmployeeAssessmentsPage() {
   const theme = useTheme();
   const [assessments, setAssessments] = useState([]);
@@ -47,8 +58,8 @@ export default function EmployeeAssessmentsPage() {
         if (prev === null) return prev;
         if (prev <= 1) {
           clearInterval(tick);
-          // Auto-submit when time expires.
-          if (submitRef.current) submitRef.current();
+          // Auto-submit when time expires (auto=true → send blanks for unanswered).
+          if (submitRef.current) submitRef.current(true);
           return 0;
         }
         return prev - 1;
@@ -71,7 +82,7 @@ export default function EmployeeAssessmentsPage() {
       if (res.data.time_limit_minutes) {
         const totalSeconds = res.data.time_limit_minutes * 60;
         if (res.data.attempt_started_at) {
-          const startedAtMs = new Date(res.data.attempt_started_at).getTime();
+          const startedAtMs = parseServerUtc(res.data.attempt_started_at);
           const elapsed = Math.floor((Date.now() - startedAtMs) / 1000);
           setTimeLeft(Math.max(0, totalSeconds - elapsed));
         } else {
@@ -100,10 +111,17 @@ export default function EmployeeAssessmentsPage() {
     setAnswers({ ...answers, [questionId]: answerId });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (auto = false) => {
+    if (submitting) return; // guard: timer expiry and a manual click could fire together
     setSubmitting(true);
     const timeTaken = Math.round((Date.now() - startTimeRef.current) / 1000);
-    const formattedAnswers = Object.entries(answers).map(([qid, aid]) => ({
+    // On a timed-out auto-submit, send EVERY question — unanswered ones as a blank
+    // pick — so the server grades the partial attempt (blanks count as wrong)
+    // instead of rejecting it for "missing answers" and stranding the user on 0:00.
+    const entries = auto
+      ? (taking?.questions || []).map((q) => [q.id, answers[q.id] ?? ''])
+      : Object.entries(answers);
+    const formattedAnswers = entries.map(([qid, aid]) => ({
       question_id: qid, selected_answer_id: aid,
     }));
     try {

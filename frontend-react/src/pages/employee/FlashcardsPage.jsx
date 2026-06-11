@@ -249,24 +249,38 @@ export default function EmployeeFlashcardsPage() {
         }}
       >
         <CardContent sx={{ p: 4, transform: flipped ? 'rotateY(180deg)' : 'none' }}>
-          {!flipped ? (
-            <>
-              <Chip label={currentCard.category} size="small" sx={{ mb: 2, bgcolor: theme.palette.custom.blueTint, color: '#3B82F6', fontWeight: 600 }} />
-              <Typography variant="subtitle2" color="text.disabled" mb={1}>SCENARIO</Typography>
-              <Typography variant="h6" lineHeight={1.7} color="text.primary">{currentCard.scenario}</Typography>
-              <Typography variant="caption" color="text.disabled" mt={3} display="block" textAlign="center">
-                Click to reveal best practice
-              </Typography>
-            </>
-          ) : (
-            <>
-              <Typography variant="subtitle2" color="text.disabled" mb={1}>BEST PRACTICE</Typography>
-              <Typography variant="body1" lineHeight={1.8} mb={2.5} color="text.primary">{currentCard.best_practice}</Typography>
-              <Box sx={{ p: 2, bgcolor: theme.palette.custom.greenTint, borderRadius: '12px', border: '1px solid #D1FAE5' }}>
-                <Typography variant="body2" fontWeight={700} color="#059669">Key Takeaway: {currentCard.key_takeaway}</Typography>
-              </Box>
-            </>
-          )}
+          {(() => {
+            // Technical (workshop) cards carry concept/explanation/example; scenario
+            // cards carry scenario/best_practice. Branch on the card's style tag.
+            const isTech = currentCard.style === 'technical' || !!currentCard.concept;
+            if (!flipped) {
+              return (
+                <>
+                  <Chip label={currentCard.category} size="small" sx={{ mb: 2, bgcolor: theme.palette.custom.blueTint, color: '#3B82F6', fontWeight: 600 }} />
+                  <Typography variant="subtitle2" color="text.disabled" mb={1}>{isTech ? 'CONCEPT' : 'SCENARIO'}</Typography>
+                  <Typography variant="h6" lineHeight={1.7} color="text.primary">{isTech ? currentCard.concept : currentCard.scenario}</Typography>
+                  <Typography variant="caption" color="text.disabled" mt={3} display="block" textAlign="center">
+                    {isTech ? 'Click to reveal explanation' : 'Click to reveal best practice'}
+                  </Typography>
+                </>
+              );
+            }
+            return (
+              <>
+                <Typography variant="subtitle2" color="text.disabled" mb={1}>{isTech ? 'EXPLANATION' : 'BEST PRACTICE'}</Typography>
+                <Typography variant="body1" lineHeight={1.8} mb={2.5} color="text.primary">{isTech ? currentCard.explanation : currentCard.best_practice}</Typography>
+                {isTech && currentCard.example && (
+                  <Box sx={{ p: 2, mb: 2.5, bgcolor: 'action.hover', borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="caption" color="text.disabled" display="block" mb={0.5}>EXAMPLE</Typography>
+                    <Typography component="pre" sx={{ m: 0, fontFamily: 'monospace', fontSize: '0.8rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'text.primary' }}>{currentCard.example}</Typography>
+                  </Box>
+                )}
+                <Box sx={{ p: 2, bgcolor: theme.palette.custom.greenTint, borderRadius: '12px', border: '1px solid #D1FAE5' }}>
+                  <Typography variant="body2" fontWeight={700} color="#059669">Key Takeaway: {currentCard.key_takeaway}</Typography>
+                </Box>
+              </>
+            );
+          })()}
         </CardContent>
       </Card>
 

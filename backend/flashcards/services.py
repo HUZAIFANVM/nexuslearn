@@ -3,7 +3,23 @@ import re
 import uuid
 from datetime import datetime, timedelta
 from ai.llm import global_llm
-from ai.prompts import FLASHCARD_GENERATION_PROMPT
+from ai.prompts import FLASHCARD_GENERATION_PROMPT, FLASHCARD_TECHNICAL_PROMPT
+
+# Each flashcard style defines its prompt, the fields the LLM must return, and
+# which field uniquely identifies a card (used for dedup). "scenario" is the
+# original workplace-policy style; "technical" is the workshop / tech-stack style.
+CARD_STYLES = {
+    "scenario": {
+        "prompt": FLASHCARD_GENERATION_PROMPT,
+        "required": {"category", "scenario", "best_practice", "key_takeaway"},
+        "dedup_key": "scenario",
+    },
+    "technical": {
+        "prompt": FLASHCARD_TECHNICAL_PROMPT,
+        "required": {"category", "concept", "explanation", "example", "key_takeaway"},
+        "dedup_key": "concept",
+    },
+}
 
 
 def sm2_update(review: dict, quality: int) -> dict:
@@ -64,9 +80,8 @@ def _parse_llm_json(content: str) -> list:
     raise ValueError(f"Could not parse JSON from LLM response: {content[:300]}")
 
 
-def _validate_card(card: dict):
-    """Validate that a flashcard has all required fields."""
-    required = {"category", "scenario", "best_practice", "key_takeaway"}
+def _validate_card(card: dict, required: set):
+    """Validate that a flashcard has all required fields for its style."""
     missing = required - set(card.keys())
     if missing:
         raise ValueError(f"Flashcard missing fields: {missing}")
@@ -75,25 +90,36 @@ def _validate_card(card: dict):
             raise ValueError(f"Flashcard field '{field}' cannot be empty")
 
 
-def _deduplicate_cards(cards: list) -> list:
-    """Remove cards with duplicate scenarios (case-insensitive)."""
+def _deduplicate_cards(cards: list, key_field: str) -> list:
+    """Remove cards whose identifying field is a duplicate (case-insensitive)."""
     seen = set()
     unique = []
     for card in cards:
-        key = card["scenario"].strip().lower()
+        key = str(card[key_field]).strip().lower()
         if key not in seen:
             seen.add(key)
             unique.append(card)
     return unique
 
 
-def generate_flashcards(document_text: str, num_cards: int, difficulty: str) -> list:
-    """Use LLM to generate scenario-based flashcards from document text."""
+def generate_flashcards(
+    document_text: str, num_cards: int, difficulty: str, card_style: str = "scenario"
+) -> list:
+    """Use the LLM to generate flashcards from document text.
+
+    card_style selects the perspective:
+      - "scenario":  workplace situation -> best practice (for SOPs/policies)
+      - "technical": concept -> explanation -> example (for tech-stack workshops)
+    """
+    style = CARD_STYLES.get(card_style)
+    if style is None:
+        raise ValueError(f"Invalid card_style: {card_style}")
+
     # Truncate text if too long for context window
     max_text_length = 12000
     truncated_text = document_text[:max_text_length]
 
-    prompt = FLASHCARD_GENERATION_PROMPT.format(
+    prompt = style["prompt"].format(
         num_cards=num_cards,
         difficulty=difficulty,
         document_text=truncated_text,
@@ -102,15 +128,16 @@ def generate_flashcards(document_text: str, num_cards: int, difficulty: str) -> 
     response = global_llm.invoke(prompt)
     cards = _parse_llm_json(response.content)
 
-    # Validate each card
+    # Validate each card against its style's required fields
     for card in cards:
-        _validate_card(card)
+        _validate_card(card, style["required"])
 
-    # Deduplicate
-    cards = _deduplicate_cards(cards)
+    # Deduplicate on the style's identifying field
+    cards = _deduplicate_cards(cards, style["dedup_key"])
 
-    # Add unique IDs to each card
+    # Tag with style + a unique ID so the client knows how to render each card
     for card in cards:
+        card["style"] = card_style
         card["id"] = f"card_{uuid.uuid4().hex[:8]}"
 
     return cards

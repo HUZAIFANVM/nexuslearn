@@ -16,7 +16,7 @@ CARD_STYLES = {
     },
     "technical": {
         "prompt": FLASHCARD_TECHNICAL_PROMPT,
-        "required": {"category", "concept", "explanation", "example", "key_takeaway"},
+        "required": {"category", "concept", "question", "explanation", "example", "key_takeaway"},
         "dedup_key": "concept",
     },
 }

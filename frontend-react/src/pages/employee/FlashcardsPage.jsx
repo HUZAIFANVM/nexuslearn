@@ -253,20 +253,27 @@ export default function EmployeeFlashcardsPage() {
             // Technical (workshop) cards carry concept/explanation/example; scenario
             // cards carry scenario/best_practice. Branch on the card's style tag.
             const isTech = currentCard.style === 'technical' || !!currentCard.concept;
+            // Front prompt for technical cards: prefer the explicit recall question;
+            // fall back to "Explain: <concept>" for cards generated before the
+            // question field existed, so the front is never just a bare label.
+            const techPrompt = currentCard.question || (currentCard.concept ? `Explain: ${currentCard.concept}` : '');
             if (!flipped) {
               return (
                 <>
                   <Chip label={currentCard.category} size="small" sx={{ mb: 2, bgcolor: theme.palette.custom.blueTint, color: '#3B82F6', fontWeight: 600 }} />
-                  <Typography variant="subtitle2" color="text.disabled" mb={1}>{isTech ? 'CONCEPT' : 'SCENARIO'}</Typography>
-                  <Typography variant="h6" lineHeight={1.7} color="text.primary">{isTech ? currentCard.concept : currentCard.scenario}</Typography>
+                  <Typography variant="subtitle2" color="text.disabled" mb={1}>{isTech ? 'QUESTION' : 'SCENARIO'}</Typography>
+                  <Typography variant="h6" lineHeight={1.7} color="text.primary">{isTech ? techPrompt : currentCard.scenario}</Typography>
                   <Typography variant="caption" color="text.disabled" mt={3} display="block" textAlign="center">
-                    {isTech ? 'Click to reveal explanation' : 'Click to reveal best practice'}
+                    {isTech ? 'Click to reveal the answer' : 'Click to reveal best practice'}
                   </Typography>
                 </>
               );
             }
             return (
               <>
+                {isTech && currentCard.concept && (
+                  <Typography variant="h6" fontWeight={700} color="text.primary" mb={1}>{currentCard.concept}</Typography>
+                )}
                 <Typography variant="subtitle2" color="text.disabled" mb={1}>{isTech ? 'EXPLANATION' : 'BEST PRACTICE'}</Typography>
                 <Typography variant="body1" lineHeight={1.8} mb={2.5} color="text.primary">{isTech ? currentCard.explanation : currentCard.best_practice}</Typography>
                 {isTech && currentCard.example && (

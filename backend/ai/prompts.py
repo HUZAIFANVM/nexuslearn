@@ -39,6 +39,9 @@ Each card teaches ONE concrete concept, tool, command, or technique from the doc
 
 IMPORTANT RULES:
 - Each card MUST cover a DISTINCT concept — no two cards on the same topic
+- The "question" is the FRONT of the flashcard — it must be a clear, self-contained recall
+  question the learner answers from memory (e.g. "What does the Unified Serving Layer do in a
+  Lambda Architecture, and why is it needed?"). Do NOT just restate the concept name.
 - Base all content strictly on the document — do not invent APIs, flags, or facts not in the document
 - The "example" must be a concrete, runnable-looking snippet, command, or usage drawn from the document (use real code/CLI/config formatting). If the document has no code, give a precise step-by-step usage example.
 - Vary categories across the different technical areas in the document
@@ -53,7 +56,8 @@ Return ONLY valid JSON array with exactly {num_cards} items:
   {{
     "category": "the technical area (e.g. 'React Hooks', 'Docker Networking')",
     "concept": "The specific concept/tool/command being taught (short, like a card title)",
-    "explanation": "A clear explanation of what it is and how it works (2-4 sentences), grounded in the document.",
+    "question": "A clear recall question for the FRONT of the card (not just the concept name).",
+    "explanation": "A clear explanation that ANSWERS the question (2-4 sentences), grounded in the document.",
     "example": "A concrete code snippet, CLI command, or config example demonstrating it.",
     "key_takeaway": "One-sentence rule of thumb the learner should remember."
   }}

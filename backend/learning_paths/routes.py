@@ -161,6 +161,7 @@ async def generate_path(current_user: dict = Depends(get_current_user)):
         "department": current_user.get("department", ""),
         "generated_at": datetime.utcnow(),
         "overall_score": overall_score,
+        "summary": result.get("summary", ""),
         "strengths": result.get("strengths", []),
         "weaknesses": result.get("weaknesses", []),
         "recommendations": result.get("recommendations", []),

@@ -174,7 +174,12 @@ export default function LearningPathPage() {
           {/* Overall performance */}
           <Card sx={{ mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" fontWeight={700} color="text.primary" mb={3}>Performance Overview</Typography>
+              <Typography variant="h6" fontWeight={700} color="text.primary" mb={path.summary ? 1 : 3}>Performance Overview</Typography>
+              {path.summary && (
+                <Box sx={{ mb: 3, p: 2, borderRadius: '12px', bgcolor: theme.palette.custom.blueTint, borderLeft: '4px solid #3B82F6' }}>
+                  <Typography variant="body2" color="text.primary" lineHeight={1.6}>{path.summary}</Typography>
+                </Box>
+              )}
               <Box display="flex" alignItems="flex-start" gap={4} flexWrap="wrap">
                 <Box sx={{ position: 'relative', display: 'inline-flex' }}>
                   <CircularProgress

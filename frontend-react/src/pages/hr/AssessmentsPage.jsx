@@ -22,7 +22,7 @@ export default function AssessmentsPage() {
   const [documents, setDocuments] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', document_id: '', assessment_type: 'mcq', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null, due_date: '' });
+  const [form, setForm] = useState({ name: '', document_id: '', assessment_type: 'mcq', question_style: 'general', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null, due_date: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,7 +40,7 @@ export default function AssessmentsPage() {
     try {
       await createAssessment(form);
       setOpen(false);
-      setForm({ name: '', document_id: '', assessment_type: 'mcq', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null, due_date: '' });
+      setForm({ name: '', document_id: '', assessment_type: 'mcq', question_style: 'general', difficulty: 'medium', num_questions: 10, access_type: 'all', departments: [], time_limit_minutes: null, due_date: '' });
       load();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed');
@@ -230,6 +230,13 @@ export default function AssessmentsPage() {
               <MenuItem value="mcq">Multiple Choice</MenuItem>
               <MenuItem value="scenario">Scenario-Based</MenuItem>
               <MenuItem value="mixed">Comprehensive (Mixed)</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Question Style</InputLabel>
+            <Select value={form.question_style} onChange={(e) => setForm({ ...form, question_style: e.target.value })} label="Question Style">
+              <MenuItem value="general">General — policy / business knowledge</MenuItem>
+              <MenuItem value="technical">Technical / Coding — engineering workshop (output, bug-fix, API choice)</MenuItem>
             </Select>
           </FormControl>
           <FormControl fullWidth margin="normal">

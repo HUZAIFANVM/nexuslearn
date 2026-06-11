@@ -166,6 +166,10 @@ def generate_learning_path(
 
     result = json.loads(content)
 
+    # Overall headline summary (string). Default to empty if the model omits it.
+    if not isinstance(result.get("summary"), str):
+        result["summary"] = ""
+
     # Validate required fields
     if "strengths" not in result or not isinstance(result["strengths"], list):
         result["strengths"] = []
@@ -218,5 +222,13 @@ def generate_learning_path(
                 "rationale": p.get("rationale", ""),
             })
     result["project_recommendations"] = validated_projects
+
+    # Hard cap as a safety net so the roadmap never sprawls even if the model
+    # ignores the "cluster & cap" instruction — keeps it readable and bounds the
+    # payload. Lists are already ordered by severity/priority/strength.
+    result["strengths"] = result["strengths"][:4]
+    result["weaknesses"] = result["weaknesses"][:4]
+    result["recommendations"] = result["recommendations"][:5]
+    result["project_recommendations"] = result["project_recommendations"][:4]
 
     return result

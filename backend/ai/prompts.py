@@ -63,6 +63,87 @@ Document content:
 {document_text}
 """
 
+ASSESSMENT_TECHNICAL_MCQ_PROMPT = """You are a technical training assessment creator for an engineering workshop.
+
+Given this document, generate {num_questions} UNIQUE technical/coding multiple-choice questions at {difficulty} level.
+
+Each question must test HANDS-ON technical understanding of the tech stack / tools / concepts in the document — the kind asked in a coding workshop, e.g. predict-the-output, spot-the-bug, choose-the-correct-API/command/config, or what-does-this-snippet-do.
+
+IMPORTANT RULES:
+- Each question MUST test a DIFFERENT concept — no duplicates
+- When a code snippet, command, or config is relevant, INCLUDE it in the question text using plain-text code formatting
+- Distribute correct answers randomly across a, b, c, d — do NOT make them all the same letter
+- All wrong options must be plausible (realistic mistakes an engineer might make), not obviously incorrect
+- Base questions strictly on the technologies and facts in the document — do not invent APIs, flags, or syntax not supported by the document
+
+Difficulty:
+- easy: Definitions, basic syntax, what a command/snippet does
+- medium: Applying a concept, predicting output, choosing the right tool/API for a task
+- hard: Debugging, edge cases, performance/security trade-offs, multi-step reasoning over code
+
+You MUST return EXACTLY {num_questions} questions — no fewer, no more. Count carefully before responding.
+
+Return ONLY valid JSON array with exactly {num_questions} items:
+[
+  {{
+    "type": "mcq",
+    "question": "The question text (include any code snippet/command here)",
+    "options": [
+      {{"id": "a", "text": "Option A"}},
+      {{"id": "b", "text": "Option B"}},
+      {{"id": "c", "text": "Option C"}},
+      {{"id": "d", "text": "Option D"}}
+    ],
+    "correct_answer_id": "a",
+    "explanation": "2-3 sentence explanation of why this is correct and why the others are wrong"
+  }}
+]
+
+Document content:
+{document_text}
+"""
+
+ASSESSMENT_TECHNICAL_SCENARIO_PROMPT = """You are a technical training assessment creator for an engineering workshop.
+
+Given this document, generate {num_questions} UNIQUE technical troubleshooting/decision scenarios at {difficulty} level.
+
+Each question presents a realistic ENGINEERING situation (a failing build, a bug, a design choice, a misconfigured tool) and asks for the best technical course of action, grounded in the document.
+
+IMPORTANT RULES:
+- Each scenario MUST be distinct — different problems, different decisions
+- Include relevant code, commands, error messages, or config in the scenario_context using plain-text code formatting where it helps
+- Distribute correct answers randomly across a, b, c, d — do NOT make them all the same letter
+- All wrong options must be plausible technical actions, not obviously incorrect
+- Base scenarios strictly on the technologies and practices in the document
+
+Difficulty:
+- easy: Common situations with a clear correct action from the document
+- medium: Situations requiring connecting multiple technical concepts
+- hard: Ambiguous failures requiring analysis of trade-offs or root-cause reasoning
+
+You MUST return EXACTLY {num_questions} questions — no fewer, no more. Count carefully before responding.
+
+Return ONLY valid JSON array with exactly {num_questions} items:
+[
+  {{
+    "type": "scenario",
+    "question": "What is the best course of action?",
+    "scenario_context": "A detailed technical scenario (2-4 sentences, include code/errors where useful)...",
+    "options": [
+      {{"id": "a", "text": "Option A"}},
+      {{"id": "b", "text": "Option B"}},
+      {{"id": "c", "text": "Option C"}},
+      {{"id": "d", "text": "Option D"}}
+    ],
+    "correct_answer_id": "b",
+    "explanation": "2-3 sentence explanation of why this is the best approach"
+  }}
+]
+
+Document content:
+{document_text}
+"""
+
 ASSESSMENT_MCQ_PROMPT = """You are a corporate training assessment creator.
 
 Given this document, generate {num_questions} UNIQUE multiple-choice questions at {difficulty} level.
@@ -240,8 +321,15 @@ ANALYSIS INSTRUCTIONS:
    better than 6 vague ones.
 4. Lead weaknesses with "weak" subjects, then "developing". Base each weakness on the
    SPECIFIC missed_topics and set severity (critical / moderate / minor).
-5. Recommend documents to study, prioritized by weakness severity.
-6. Suggest 2-4 real-world PROJECT RECOMMENDATIONS relevant to the employee's skill profile.
+5. CLUSTER & CAP — do NOT emit one item per missed question. Group related missed topics
+   into a SINGLE higher-level focus area (e.g. several rollback/recovery questions ->
+   one "Deployment rollback & recovery" weakness). Return AT MOST 4 weaknesses and AT MOST
+   4 strengths, ordered by severity / strength. Merge the rest into the closest cluster.
+6. Write a "summary": 1-2 plain sentences giving the overall picture (where they're strong,
+   the top focus area, and the single most useful next step). This is the headline the
+   employee reads first — keep it specific but concise.
+7. Recommend documents to study, prioritized by weakness severity.
+8. Suggest UP TO 4 real-world PROJECT RECOMMENDATIONS relevant to the employee's skill profile.
    For EACH project assess assignment fitness, and "fitness_rationale" MUST cite the specific
    per-subject evidence behind it (mastery_label + a topic + a number):
    - "ready": Employee is STRONG in the required skills — assign directly, they can lead or own this.
@@ -250,6 +338,7 @@ ANALYSIS INSTRUCTIONS:
 
 Return ONLY valid JSON:
 {{
+  "summary": "1-2 sentence overall headline (strengths, top focus area, best next step).",
   "strengths": [
     {{
       "skill": "Specific skill name",

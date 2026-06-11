@@ -39,6 +39,7 @@ class AssessmentCreate(BaseModel):
     document_id: str
     name: str
     assessment_type: str = "mcq"  # mcq, scenario, mixed
+    question_style: str = "general"  # "general" or "technical" (coding/engineering)
     difficulty: str = "medium"
     num_questions: int = 10
     departments: Optional[List[str]] = None
@@ -100,6 +101,9 @@ async def create_assessment(
     if data.assessment_type not in ["mcq", "scenario", "mixed"]:
         raise HTTPException(status_code=400, detail="Assessment type must be mcq, scenario, or mixed")
 
+    if data.question_style not in ["general", "technical"]:
+        raise HTTPException(status_code=400, detail="question_style must be 'general' or 'technical'")
+
     if data.difficulty not in ["easy", "medium", "hard"]:
         raise HTTPException(status_code=400, detail="Difficulty must be easy, medium, or hard")
 
@@ -131,7 +135,7 @@ async def create_assessment(
 
     try:
         questions = generate_assessment_questions(
-            text, data.num_questions, data.difficulty, data.assessment_type
+            text, data.num_questions, data.difficulty, data.assessment_type, data.question_style
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate assessment: {str(e)}")
@@ -141,6 +145,7 @@ async def create_assessment(
         "document_id": data.document_id,
         "document_name": document["filename"],
         "assessment_type": data.assessment_type,
+        "question_style": data.question_style,
         "difficulty": data.difficulty,
         "num_questions": len(questions),
         "questions": questions,
@@ -166,6 +171,7 @@ async def create_assessment(
         "name": data.name,
         "document_name": document["filename"],
         "assessment_type": data.assessment_type,
+        "question_style": data.question_style,
         "num_questions": len(questions),
         "difficulty": data.difficulty,
         "created_at": assessment_doc["created_at"],
@@ -205,6 +211,7 @@ async def list_assessments(current_user: dict = Depends(get_current_user)):
             "document_id": a["document_id"],
             "document_name": a["document_name"],
             "assessment_type": a["assessment_type"],
+            "question_style": a.get("question_style", "general"),
             "difficulty": a["difficulty"],
             "num_questions": a["num_questions"],
             "access_type": a["access_type"],

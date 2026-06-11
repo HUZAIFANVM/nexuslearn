@@ -3,7 +3,18 @@ import re
 import uuid
 import random
 from ai.llm import global_llm
-from ai.prompts import ASSESSMENT_MCQ_PROMPT, ASSESSMENT_SCENARIO_PROMPT
+from ai.prompts import (
+    ASSESSMENT_MCQ_PROMPT, ASSESSMENT_SCENARIO_PROMPT,
+    ASSESSMENT_TECHNICAL_MCQ_PROMPT, ASSESSMENT_TECHNICAL_SCENARIO_PROMPT,
+)
+
+# Question style selects the content perspective. "general" is the original
+# policy/scenario style; "technical" produces coding/engineering questions.
+# Format (mcq/scenario) and difficulty compose on top of whichever style is picked.
+QUESTION_STYLE_PROMPTS = {
+    "general": {"mcq": ASSESSMENT_MCQ_PROMPT, "scenario": ASSESSMENT_SCENARIO_PROMPT},
+    "technical": {"mcq": ASSESSMENT_TECHNICAL_MCQ_PROMPT, "scenario": ASSESSMENT_TECHNICAL_SCENARIO_PROMPT},
+}
 
 
 def _parse_llm_json(content: str) -> list:
@@ -163,13 +174,20 @@ def _generate_questions_with_retry(prompt: str, expected_type: str, num_requeste
 
 
 def generate_assessment_questions(
-    document_text: str, num_questions: int, difficulty: str, assessment_type: str
+    document_text: str, num_questions: int, difficulty: str, assessment_type: str,
+    question_style: str = "general",
 ) -> list:
     max_text_length = 12000
     truncated_text = document_text[:max_text_length]
 
+    style = QUESTION_STYLE_PROMPTS.get(question_style)
+    if style is None:
+        raise ValueError(f"Invalid question_style: {question_style}")
+    mcq_template = style["mcq"]
+    scenario_template = style["scenario"]
+
     if assessment_type == "mcq":
-        prompt = ASSESSMENT_MCQ_PROMPT.format(
+        prompt = mcq_template.format(
             num_questions=num_questions,
             difficulty=difficulty,
             document_text=truncated_text,
@@ -177,7 +195,7 @@ def generate_assessment_questions(
         questions = _generate_questions_with_retry(prompt, "mcq", num_questions)
 
     elif assessment_type == "scenario":
-        prompt = ASSESSMENT_SCENARIO_PROMPT.format(
+        prompt = scenario_template.format(
             num_questions=num_questions,
             difficulty=difficulty,
             document_text=truncated_text,
@@ -188,12 +206,12 @@ def generate_assessment_questions(
         mcq_count = num_questions // 2
         scenario_count = num_questions - mcq_count
 
-        mcq_prompt = ASSESSMENT_MCQ_PROMPT.format(
+        mcq_prompt = mcq_template.format(
             num_questions=mcq_count,
             difficulty=difficulty,
             document_text=truncated_text,
         )
-        scenario_prompt = ASSESSMENT_SCENARIO_PROMPT.format(
+        scenario_prompt = scenario_template.format(
             num_questions=scenario_count,
             difficulty=difficulty,
             document_text=truncated_text,

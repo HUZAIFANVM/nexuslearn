@@ -739,6 +739,11 @@ export default function EmployeeManagementPage() {
             </Box>
           ) : (
             <Box>
+              {roadmapData.summary && (
+                <Box sx={{ mb: 2.5, p: 2, borderRadius: '12px', bgcolor: theme.palette.custom.blueTint, borderLeft: '4px solid #3B82F6' }}>
+                  <Typography variant="body2" color="text.primary" lineHeight={1.6}>{roadmapData.summary}</Typography>
+                </Box>
+              )}
               {/* Score + Strengths + Weaknesses */}
               <Box display="flex" alignItems="flex-start" gap={3} mb={3} flexWrap="wrap">
                 <Box sx={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>

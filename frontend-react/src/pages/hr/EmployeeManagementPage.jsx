@@ -798,6 +798,14 @@ export default function EmployeeManagementPage() {
                         })}
                       </Grid>
                     )}
+                    {!roadmapData.strengths?.length && !roadmapData.weaknesses?.length && (
+                      <Grid item xs={12}>
+                        <Typography variant="body2" color="text.secondary">
+                          Not enough detailed activity yet to identify specific strengths or focus
+                          areas. The overall score reflects real evaluation and training data.
+                        </Typography>
+                      </Grid>
+                    )}
                   </Grid>
                 </Box>
               </Box>

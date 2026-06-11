@@ -154,12 +154,21 @@ export default function EmployeeProgressPage() {
                     <Box sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: '12px' }}>
                       <Typography variant="subtitle2" color="#64748B" mb={1.5}>GROWTH ROADMAP</Typography>
                       <Box display="flex" gap={1} mb={1.5} flexWrap="wrap">
-                        {empPath.strengths?.map((s) => (
-                          <Chip key={s} icon={<TrendingUp sx={{ fontSize: 12 }} />} label={s} size="small" sx={{ bgcolor: '#ECFDF5', color: '#059669', fontWeight: 600, fontSize: '0.7rem', '& .MuiChip-icon': { color: '#059669' } }} />
-                        ))}
-                        {empPath.weaknesses?.map((w) => (
-                          <Chip key={w} icon={<Warning sx={{ fontSize: 12 }} />} label={w} size="small" sx={{ bgcolor: '#FEE2E2', color: '#DC2626', fontWeight: 600, fontSize: '0.7rem', '& .MuiChip-icon': { color: '#DC2626' } }} />
-                        ))}
+                        {/* strengths/weaknesses are objects ({skill, evidence, ...});
+                            tolerate the legacy string format too, and skip blanks. */}
+                        {empPath.strengths?.map((s, i) => {
+                          const skill = typeof s === 'string' ? s : s?.skill;
+                          if (!skill) return null;
+                          return <Chip key={`s-${i}`} icon={<TrendingUp sx={{ fontSize: 12 }} />} label={skill} size="small" sx={{ bgcolor: '#ECFDF5', color: '#059669', fontWeight: 600, fontSize: '0.7rem', '& .MuiChip-icon': { color: '#059669' } }} />;
+                        })}
+                        {empPath.weaknesses?.map((w, i) => {
+                          const skill = typeof w === 'string' ? w : w?.skill;
+                          if (!skill) return null;
+                          return <Chip key={`w-${i}`} icon={<Warning sx={{ fontSize: 12 }} />} label={skill} size="small" sx={{ bgcolor: '#FEE2E2', color: '#DC2626', fontWeight: 600, fontSize: '0.7rem', '& .MuiChip-icon': { color: '#DC2626' } }} />;
+                        })}
+                        {!empPath.strengths?.length && !empPath.weaknesses?.length && (
+                          <Typography variant="caption" color="#94A3B8">Not enough activity yet to identify specific strengths or focus areas.</Typography>
+                        )}
                       </Box>
                       <Box display="flex" alignItems="center" gap={2}>
                         <Box flex={1}>

@@ -57,6 +57,18 @@ export default function LearningPathPage() {
     minor: { color: '#3B82F6', bg: theme.palette.custom.blueTint, label: 'Minor' },
   };
 
+  // How much grounded analysis came back. When the model abstains on thin data,
+  // these can be 0 — drive empty-state messaging off this instead of showing
+  // bare section headers with nothing under them.
+  const counts = {
+    strengths: path?.strengths?.length || 0,
+    weaknesses: path?.weaknesses?.length || 0,
+    recommendations: path?.recommendations?.length || 0,
+    projects: path?.project_recommendations?.length || 0,
+  };
+  const hasInsights =
+    counts.strengths + counts.weaknesses + counts.recommendations + counts.projects > 0;
+
   // Helper to render strengths — handles both old string[] and new object[] format
   const renderStrengths = (strengths) => {
     if (!strengths?.length) return null;
@@ -149,6 +161,16 @@ export default function LearningPathPage() {
         </Card>
       ) : (
         <>
+          {/* Thin-data notice: roadmap generated, but not enough detail for specific insights */}
+          {!hasInsights && (
+            <Alert severity="info" icon={<AutoAwesome />} sx={{ mb: 3, borderRadius: '12px' }}>
+              We built your roadmap from your current activity, but there isn't enough detailed
+              data yet to pinpoint specific strengths, focus areas, or projects. Complete more
+              competency evaluations (or review more flashcards), then regenerate for richer,
+              evidence-based insights.
+            </Alert>
+          )}
+
           {/* Overall performance */}
           <Card sx={{ mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
@@ -186,6 +208,15 @@ export default function LearningPathPage() {
                           <Typography variant="subtitle2" color="text.secondary">FOCUS AREAS</Typography>
                         </Box>
                         {renderWeaknesses(path.weaknesses)}
+                      </Grid>
+                    )}
+                    {counts.strengths === 0 && counts.weaknesses === 0 && (
+                      <Grid item xs={12}>
+                        <Typography variant="body2" color="text.secondary">
+                          Your overall score is shown from real evaluation and training data.
+                          Specific strengths and focus areas will appear here once there's enough
+                          detailed activity to identify them.
+                        </Typography>
                       </Grid>
                     )}
                   </Grid>
@@ -261,7 +292,8 @@ export default function LearningPathPage() {
             </Box>
           )}
 
-          {/* Document Recommendations */}
+          {/* Document Recommendations — only when there are grounded recommendations */}
+          {counts.recommendations > 0 && (
           <Box mb={3}>
             <Typography variant="h6" fontWeight={700} color="text.primary" mb={0.5}>Recommended Development Plan</Typography>
             <Typography variant="body2" color="text.secondary" mb={2.5}>Prioritized learning activities based on your performance analysis</Typography>
@@ -304,6 +336,7 @@ export default function LearningPathPage() {
               );
             })}
           </Box>
+          )}
 
           {/* Performance summaries */}
           <Grid container spacing={2.5}>

@@ -4,6 +4,7 @@ import {
   SmartToy, Style, Quiz, Route, LightbulbOutlined,
   Person, AutoAwesome, Description, CheckCircle,
   RadioButtonUnchecked, AccessTime, Bolt, Today, TipsAndUpdates,
+  RocketLaunch, Lock, Diversity3, Insights, Warning, ArrowForward,
 } from '@mui/icons-material';
 
 /**
@@ -18,6 +19,10 @@ export const FEATURES = [
   { key: 'competency', label: 'Competency Evaluations', short: 'Evaluation', icon: <Quiz sx={{ fontSize: 18 }} />,              color: '#10B981' },
   { key: 'roadmap',    label: 'Growth Roadmaps',        short: 'Roadmap',    icon: <Route sx={{ fontSize: 18 }} />,             color: '#F59E0B' },
   { key: 'sop',        label: 'SOP of the Day',         short: 'SOP',        icon: <LightbulbOutlined sx={{ fontSize: 18 }} />, color: '#06B6D4' },
+  { key: 'onboarding', label: 'Onboarding Paths',       short: 'Onboarding', icon: <RocketLaunch sx={{ fontSize: 18 }} />,      color: '#14B8A6' },
+  { key: 'tracks',     label: 'Learning Tracks',        short: 'Tracks',     icon: <Route sx={{ fontSize: 18 }} />,             color: '#6366F1' },
+  { key: 'mentorship', label: 'Mentorship',             short: 'Mentorship', icon: <Diversity3 sx={{ fontSize: 18 }} />,        color: '#EC4899' },
+  { key: 'analytics',  label: 'L&D Analytics',          short: 'Analytics',  icon: <Insights sx={{ fontSize: 18 }} />,          color: '#0EA5E9' },
 ];
 
 /* stagger-reveal helper */
@@ -452,10 +457,211 @@ function SOPDemo() {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* 6. Onboarding — checklist steps tick off, % climbs                 */
+/* ------------------------------------------------------------------ */
+function OnboardingDemo() {
+  const accent = '#14B8A6';
+  const steps = [
+    { label: 'Read: Company Handbook' },
+    { label: 'Training: Security Basics' },
+    { label: 'Evaluation: Code of Conduct' },
+    { label: 'Read: Team Workflows' },
+  ];
+  const done = useStep([800, 1600, 2400]); // 0 → 3 complete over time
+  const pct = Math.round((done / steps.length) * 100);
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.4 }}>
+        <Box sx={{ width: 28, height: 28, borderRadius: '8px', background: `linear-gradient(135deg, ${accent} 0%, #0D9488 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+          <RocketLaunch sx={{ fontSize: 15 }} />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ display: 'block', lineHeight: 1.2, fontSize: '0.78rem' }}>Engineering New Hire</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.64rem' }}>Day-one checklist</Typography>
+        </Box>
+        <Typography variant="caption" fontWeight={800} sx={{ color: accent, fontSize: '0.9rem', fontVariantNumeric: 'tabular-nums' }}>{pct}%</Typography>
+      </Box>
+      <LinearProgress variant="determinate" value={pct} sx={{
+        height: 6, borderRadius: 4, mb: 1.4,
+        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : `${accent}15`,
+        '& .MuiLinearProgress-bar': { background: `linear-gradient(90deg, ${accent} 0%, #2DD4BF 100%)`, borderRadius: 4, transition: 'transform 0.7s ease' },
+      }} />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6 }}>
+        {steps.map((s, i) => {
+          const isDone = i < done;
+          const isCurrent = i === done;
+          return (
+            <Box key={i} sx={{
+              display: 'flex', alignItems: 'center', gap: 1, px: 1, py: 0.8, borderRadius: '10px',
+              background: isCurrent ? `${accent}12` : (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.02)',
+              border: '1px solid', borderColor: isDone ? `${accent}55` : isCurrent ? accent : 'transparent',
+              transition: 'all 0.4s ease',
+            }}>
+              {isDone
+                ? <CheckCircle sx={{ fontSize: 16, color: accent }} />
+                : <RadioButtonUnchecked sx={{ fontSize: 16, color: isCurrent ? accent : 'text.disabled' }} />}
+              <Typography variant="caption" sx={{ fontSize: '0.76rem', color: isDone || isCurrent ? 'text.primary' : 'text.secondary', fontWeight: isCurrent ? 700 : 500 }}>{s.label}</Typography>
+              {isCurrent && <Chip label="NOW" size="small" sx={{ ml: 'auto', height: 16, fontSize: '0.54rem', fontWeight: 700, bgcolor: accent, color: '#fff', borderRadius: '4px' }} />}
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 7. Learning Tracks — sequential steps unlock one by one            */
+/* ------------------------------------------------------------------ */
+function TracksDemo() {
+  const accent = '#6366F1';
+  const items = [
+    { label: 'Intro to Kubernetes', icon: <Description sx={{ fontSize: 13 }} /> },
+    { label: 'Pod Networking Cards', icon: <Style sx={{ fontSize: 13 }} /> },
+    { label: 'Deployment Quiz', icon: <Quiz sx={{ fontSize: 13 }} /> },
+  ];
+  const cur = useStep([1000, 2100]); // current position advances → unlocks next
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.4 }}>
+        <Box sx={{ width: 28, height: 28, borderRadius: '8px', background: `linear-gradient(135deg, ${accent} 0%, #8B5CF6 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+          <Route sx={{ fontSize: 15 }} />
+        </Box>
+        <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ flex: 1, fontSize: '0.82rem' }}>Kubernetes Fundamentals</Typography>
+        <Chip label="TRACK" size="small" sx={{ height: 18, fontSize: '0.58rem', fontWeight: 700, bgcolor: `${accent}15`, color: accent, borderRadius: '5px' }} />
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.7 }}>
+        {items.map((it, i) => {
+          const state = i < cur ? 'done' : i === cur ? 'active' : 'locked';
+          return (
+            <Box key={i} sx={{
+              display: 'flex', alignItems: 'center', gap: 1.1, px: 1.1, py: 1, borderRadius: '11px',
+              opacity: state === 'locked' ? 0.5 : 1,
+              background: state === 'active' ? `${accent}12` : (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.02)',
+              border: '1px solid', borderColor: state === 'done' ? '#10B98155' : state === 'active' ? accent : 'transparent',
+              transition: 'all 0.45s ease',
+            }}>
+              <Box sx={{ width: 24, height: 24, borderRadius: '7px', flexShrink: 0, bgcolor: `${accent}18`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{it.icon}</Box>
+              <Typography variant="caption" sx={{ flex: 1, fontSize: '0.78rem', color: state === 'locked' ? 'text.secondary' : 'text.primary', fontWeight: state === 'active' ? 700 : 500 }}>{it.label}</Typography>
+              {state === 'done' ? <CheckCircle sx={{ fontSize: 16, color: '#10B981' }} />
+                : state === 'locked' ? <Lock sx={{ fontSize: 13, color: 'text.disabled' }} />
+                : <Bolt sx={{ fontSize: 15, color: accent }} />}
+            </Box>
+          );
+        })}
+      </Box>
+      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.66rem', mt: 1, display: 'block', ...reveal(cur >= 1, 100) }}>
+        Each step unlocks the next — progress tracked automatically.
+      </Typography>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 8. Mentorship — strength meets gap, AI pairs them                  */
+/* ------------------------------------------------------------------ */
+function MentorshipDemo() {
+  const accent = '#EC4899';
+  const step = useStep([500, 1200, 2000]); // mentor → mentee → matched
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.6 }}>
+        <Box sx={{ width: 28, height: 28, borderRadius: '8px', background: `linear-gradient(135deg, ${accent} 0%, #BE185D 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+          <Diversity3 sx={{ fontSize: 15 }} />
+        </Box>
+        <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ flex: 1, fontSize: '0.82rem' }}>Suggested pairing</Typography>
+        <Chip icon={<AutoAwesome sx={{ fontSize: 11 }} />} label="AI MATCH" size="small" sx={{ height: 18, fontSize: '0.56rem', fontWeight: 700, bgcolor: `${accent}15`, color: accent, borderRadius: '5px', ...reveal(step >= 3), '& .MuiChip-icon': { color: accent } }} />
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.4 }}>
+        <Box sx={{ flex: 1, textAlign: 'center', p: 1.2, borderRadius: '12px', border: '1px solid', borderColor: '#10B98140', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#10B98110', ...reveal(step >= 1) }}>
+          <Avatar sx={{ width: 30, height: 30, mx: 'auto', mb: 0.5, bgcolor: '#10B981' }}><Person sx={{ fontSize: 16 }} /></Avatar>
+          <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ display: 'block', fontSize: '0.74rem' }}>Sara A.</Typography>
+          <Typography variant="caption" sx={{ fontSize: '0.6rem', color: '#10B981', fontWeight: 600 }}>Strong · Docker</Typography>
+        </Box>
+        <Box sx={{ ...reveal(step >= 2) }}>
+          <ArrowForward sx={{ fontSize: 18, color: accent }} />
+        </Box>
+        <Box sx={{ flex: 1, textAlign: 'center', p: 1.2, borderRadius: '12px', border: '1px solid', borderColor: '#EF444440', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#EF444410', ...reveal(step >= 2) }}>
+          <Avatar sx={{ width: 30, height: 30, mx: 'auto', mb: 0.5, bgcolor: '#EF4444' }}><Person sx={{ fontSize: 16 }} /></Avatar>
+          <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ display: 'block', fontSize: '0.74rem' }}>Bilal K.</Typography>
+          <Typography variant="caption" sx={{ fontSize: '0.6rem', color: '#EF4444', fontWeight: 600 }}>Gap · Docker</Typography>
+        </Box>
+      </Box>
+      <Box sx={{ ...reveal(step >= 3, 80) }}>
+        <Box sx={{ p: 1.2, borderRadius: '12px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : `${accent}0A`, border: '1px solid', borderColor: `${accent}25`, display: 'flex', alignItems: 'center', gap: 0.8 }}>
+          <CheckCircle sx={{ fontSize: 15, color: accent }} />
+          <Typography variant="caption" sx={{ fontSize: '0.72rem', color: 'text.primary' }}>
+            Matched from growth-roadmap data — <Box component="strong" sx={{ color: accent }}>strength meets gap</Box>.
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 9. L&D Analytics — KPI count-up + skill-gap bars fill              */
+/* ------------------------------------------------------------------ */
+function AnalyticsDemo() {
+  const accent = '#0EA5E9';
+  const gaps = [
+    { skill: 'Incident Response', v: 90 },
+    { skill: 'Data Privacy', v: 55 },
+    { skill: 'Access Control', v: 30 },
+  ];
+  const [score, setScore] = useState(0);
+  const fill = useStep([500, 800, 1100]); // bars reveal one by one
+  useEffect(() => {
+    const target = 82;
+    const started = performance.now();
+    let raf;
+    const tick = (now) => {
+      const t = Math.min(1, (now - started) / 1300);
+      setScore(Math.round((1 - Math.pow(1 - t, 3)) * target));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', gap: 0.8, mb: 1.5 }}>
+        {[{ k: 'Avg Score', v: `${score}%` }, { k: 'Retention', v: '74%' }, { k: 'Roadmaps', v: '128' }].map((m, i) => (
+          <Box key={m.k} sx={{ flex: 1, p: 1, borderRadius: '11px', textAlign: 'center', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : `${accent}0D`, border: '1px solid', borderColor: `${accent}20`, ...reveal(true, i * 80) }}>
+            <Typography variant="caption" fontWeight={800} color="text.primary" sx={{ display: 'block', fontSize: '0.95rem', fontVariantNumeric: 'tabular-nums' }}>{m.v}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.58rem' }}>{m.k}</Typography>
+          </Box>
+        ))}
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+        <Warning sx={{ fontSize: 13, color: '#EF4444' }} />
+        <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ fontSize: '0.72rem' }}>Top organization skill gaps</Typography>
+      </Box>
+      {gaps.map((g, i) => (
+        <Box key={g.skill} sx={{ mb: 1, ...reveal(fill >= i + 1, 0) }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.3 }}>
+            <Typography variant="caption" sx={{ fontSize: '0.72rem', color: 'text.primary' }}>{g.skill}</Typography>
+            <Typography variant="caption" sx={{ fontSize: '0.66rem', color: 'text.secondary' }}>{g.v > 70 ? 'critical' : g.v > 45 ? 'moderate' : 'minor'}</Typography>
+          </Box>
+          <LinearProgress variant="determinate" value={fill >= i + 1 ? g.v : 0} sx={{
+            height: 6, borderRadius: 3, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)',
+            '& .MuiLinearProgress-bar': { borderRadius: 3, transition: 'transform 0.8s ease', background: g.v > 70 ? 'linear-gradient(90deg,#EF4444,#DC2626)' : g.v > 45 ? 'linear-gradient(90deg,#F59E0B,#D97706)' : 'linear-gradient(90deg,#10B981,#059669)' },
+          }} />
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
 export const DEMOS = {
   knowledge: KnowledgeDemo,
   retention: RetentionDemo,
   competency: CompetencyDemo,
   roadmap: RoadmapDemo,
   sop: SOPDemo,
+  onboarding: OnboardingDemo,
+  tracks: TracksDemo,
+  mentorship: MentorshipDemo,
+  analytics: AnalyticsDemo,
 };

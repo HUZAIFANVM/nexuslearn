@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi.responses import Response
 from datetime import datetime
 from typing import List
 from bson import ObjectId
+from bson.errors import InvalidId
 from database import documents_collection, fs
 from auth.dependencies import get_current_user, require_hr_role
 from models.document import DocumentResponse
@@ -121,6 +123,30 @@ async def get_documents(current_user: dict = Depends(get_current_user)):
         )
         for doc in documents
     ]
+
+
+@router.get("/documents/{document_id}/download")
+async def download_document(document_id: str, current_user: dict = Depends(get_current_user)):
+    """Stream a document's original file from GridFS. Any logged-in user may read
+    it — needed so employees can open 'document' steps in onboarding paths and
+    learning tracks."""
+    try:
+        doc = documents_collection.find_one({"_id": ObjectId(document_id)})
+    except (InvalidId, Exception):
+        raise HTTPException(status_code=404, detail="Document not found")
+    if not doc or not doc.get("is_active", True):
+        raise HTTPException(status_code=404, detail="Document not found")
+    try:
+        grid_out = fs.get(doc["file_id"])
+        data = grid_out.read()
+    except Exception:
+        raise HTTPException(status_code=404, detail="Document file not found")
+    filename = doc.get("filename", "document")
+    return Response(
+        content=data,
+        media_type=doc.get("content_type", "application/octet-stream"),
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
 
 
 @router.delete("/documents/{document_id}")

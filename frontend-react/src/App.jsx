@@ -19,6 +19,10 @@ import HRFlashcardsPage from './pages/hr/FlashcardsPage';
 import HRAssessmentsPage from './pages/hr/AssessmentsPage';
 import EmployeeManagementPage from './pages/hr/EmployeeManagementPage';
 import SOPOfTheDayPage from './pages/hr/SOPOfTheDayPage';
+import AnalyticsPage from './pages/hr/AnalyticsPage';
+import HROnboardingPage from './pages/hr/OnboardingPage';
+import HRTracksPage from './pages/hr/TracksPage';
+import HRMentorshipPage from './pages/hr/MentorshipPage';
 
 // Employee Pages
 import EmployeeDashboard from './pages/employee/DashboardPage';
@@ -26,6 +30,9 @@ import ChatPage from './pages/employee/ChatPage';
 import EmployeeFlashcardsPage from './pages/employee/FlashcardsPage';
 import EmployeeAssessmentsPage from './pages/employee/AssessmentsPage';
 import LearningPathPage from './pages/employee/LearningPathPage';
+import EmployeeOnboardingPage from './pages/employee/OnboardingPage';
+import EmployeeTracksPage from './pages/employee/TracksPage';
+import EmployeeMentorshipPage from './pages/employee/MentorshipPage';
 
 // Super Admin Pages
 import PendingHRsPage from './pages/admin/PendingHRsPage';
@@ -60,6 +67,10 @@ export default function App() {
                 <Route path="assessments" element={<HRAssessmentsPage />} />
                 <Route path="employees" element={<EmployeeManagementPage />} />
                 <Route path="sop-of-the-day" element={<SOPOfTheDayPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="onboarding" element={<HROnboardingPage />} />
+                <Route path="tracks" element={<HRTracksPage />} />
+                <Route path="mentorship" element={<HRMentorshipPage />} />
               </Route>
 
               {/* Employee Routes */}
@@ -69,6 +80,9 @@ export default function App() {
                 <Route path="flashcards" element={<EmployeeFlashcardsPage />} />
                 <Route path="assessments" element={<EmployeeAssessmentsPage />} />
                 <Route path="learning-path" element={<LearningPathPage />} />
+                <Route path="onboarding" element={<EmployeeOnboardingPage />} />
+                <Route path="tracks" element={<EmployeeTracksPage />} />
+                <Route path="mentorship" element={<EmployeeMentorshipPage />} />
               </Route>
 
               <Route path="/" element={<LandingPage />} />

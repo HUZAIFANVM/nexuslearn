@@ -42,6 +42,15 @@ password_reset_tokens_collection = db.password_reset_tokens
 # Create TTL index for automatic expiration (1 hour)
 password_reset_tokens_collection.create_index("created_at", expireAfterSeconds=3600)
 
+# L&D feature collections (onboarding, learning tracks, mentorship)
+onboarding_templates_collection = db.onboarding_templates
+onboarding_progress_collection = db.onboarding_progress
+onboarding_progress_collection.create_index("user_id", name="onboarding_progress_user")
+learning_tracks_collection = db.learning_tracks
+mentorships_collection = db.mentorships
+mentorships_collection.create_index([("mentor_id", 1)], name="mentorship_mentor")
+mentorships_collection.create_index([("mentee_id", 1)], name="mentorship_mentee")
+
 # Notifications
 notifications_collection = db.notifications
 

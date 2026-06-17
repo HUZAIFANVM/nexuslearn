@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import {
   Dashboard, Description, SmartToy, Style, Quiz,
   Route, People, MenuBook, AdminPanelSettings, Logout,
+  Insights, RocketLaunch, Diversity3,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { glassNavbar, fadeInUp } from '../../theme/glass';
@@ -16,6 +17,10 @@ const HR_NAV = [
   { label: 'Competency Evaluations', icon: <Quiz />, path: '/hr/assessments' },
   { label: 'SOP of the Day', icon: <MenuBook />, path: '/hr/sop-of-the-day' },
   { label: 'Employee Management', icon: <People />, path: '/hr/employees' },
+  { label: 'Onboarding Paths', icon: <RocketLaunch />, path: '/hr/onboarding' },
+  { label: 'Learning Tracks', icon: <Route />, path: '/hr/tracks' },
+  { label: 'Mentorship', icon: <Diversity3 />, path: '/hr/mentorship' },
+  { label: 'L&D Analytics', icon: <Insights />, path: '/hr/analytics' },
 ];
 
 const EMPLOYEE_NAV = [
@@ -24,6 +29,9 @@ const EMPLOYEE_NAV = [
   { label: 'Retention Training', icon: <Style />, path: '/employee/flashcards' },
   { label: 'Competency Check', icon: <Quiz />, path: '/employee/assessments' },
   { label: 'Growth Roadmap', icon: <Route />, path: '/employee/learning-path' },
+  { label: 'Onboarding', icon: <RocketLaunch />, path: '/employee/onboarding' },
+  { label: 'Learning Tracks', icon: <Insights />, path: '/employee/tracks' },
+  { label: 'Mentorship', icon: <Diversity3 />, path: '/employee/mentorship' },
 ];
 
 const SUPER_ADMIN_NAV = [
@@ -94,8 +102,13 @@ export default function IconRail() {
         </svg>
       </Box>
 
-      {/* Nav items */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, flex: 1 }}>
+      {/* Nav items — scroll if they exceed the rail height (HR has many) */}
+      <Box sx={{
+        display: 'flex', flexDirection: 'column', gap: 0.5, flex: 1,
+        minHeight: 0, overflowY: 'auto', overflowX: 'hidden',
+        '&::-webkit-scrollbar': { width: 0 },  // hide scrollbar, keep scroll
+        scrollbarWidth: 'none',
+      }}>
         {items.map((item) => {
           const isActive = location.pathname === item.path;
           return (

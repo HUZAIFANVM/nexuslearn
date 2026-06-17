@@ -14,6 +14,10 @@ from learning_paths.routes import router as learning_paths_router
 from sop_of_the_day.routes import router as sop_of_the_day_router
 from employees.routes import router as employees_router
 from notifications.routes import router as notifications_router
+from analytics.routes import router as analytics_router
+from onboarding.routes import router as onboarding_router
+from tracks.routes import router as tracks_router
+from mentorship.routes import router as mentorship_router
 
 app = FastAPI(title="Corporate LMS API", version="2.0.0")
 
@@ -35,6 +39,10 @@ app.include_router(learning_paths_router)
 app.include_router(sop_of_the_day_router)
 app.include_router(employees_router)
 app.include_router(notifications_router)
+app.include_router(analytics_router)
+app.include_router(onboarding_router)
+app.include_router(tracks_router)
+app.include_router(mentorship_router)
 
 
 @app.on_event("startup")

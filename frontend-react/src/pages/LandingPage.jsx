@@ -10,6 +10,7 @@ import {
   CheckCircle, ArrowForward, AutoAwesome, Shield, Speed, Insights,
   ExpandMore, HelpOutline, AdminPanelSettings, Badge as BadgeIcon, Person,
   Add, Remove, Lock, ChatBubbleOutline, Description, EmojiEvents, Cancel,
+  RocketLaunch, Diversity3,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,6 +21,7 @@ import HeroFeatureCarousel from '../components/landing/HeroFeatureCarousel';
 import {
   KnowledgeAssistantMock, RetentionTrainingMock,
   CompetencyEvaluationMock, GrowthRoadmapMock, SOPOfTheDayMock,
+  OnboardingMock, LearningTracksMock, MentorshipMock, AnalyticsMock,
 } from '../components/landing/FeatureMocks';
 import {
   glassCard, glassNavbar, glassButton,
@@ -204,6 +206,42 @@ const FEATURES = [
     heading: ['One sharp insight,', 'every working day.'],
     body: 'Each morning, NexusLearn picks a fresh nugget from your training materials — a single SOP highlight, a key policy point, a critical procedure — and surfaces it to your team. AI rotates the topic daily so nothing repeats, and you can fully automate the schedule or trigger one on demand.',
     Mock: SOPOfTheDayMock,
+    mockLeft: false,
+  },
+  {
+    chip: 'Onboarding Paths',
+    chipColor: '#14B8A6',
+    icon: <RocketLaunch sx={{ fontSize: 20 }} />,
+    heading: ['New hires, productive', 'from day one.'],
+    body: 'Build a role- and department-specific onboarding checklist — documents to read, training to complete, evaluations to pass. New hires get it the moment they join, steps auto-complete as they progress, and HR sees exactly who is ramped and who is stuck.',
+    Mock: OnboardingMock,
+    mockLeft: true,
+  },
+  {
+    chip: 'Learning Tracks',
+    chipColor: '#6366F1',
+    icon: <Route sx={{ fontSize: 20 }} />,
+    heading: ['Structured courses,', 'not scattered files.'],
+    body: 'Sequence documents, retention training, and competency checks into a guided track. Each step unlocks the next, so learners move through your curriculum in the right order — and progress is tracked automatically from their real activity.',
+    Mock: LearningTracksMock,
+    mockLeft: false,
+  },
+  {
+    chip: 'Mentorship',
+    chipColor: '#EC4899',
+    icon: <Diversity3 sx={{ fontSize: 20 }} />,
+    heading: ['Pair the right people,', 'backed by data.'],
+    body: 'NexusLearn reads every growth roadmap and suggests mentor pairings automatically — a colleague strong in a skill matched to someone with a gap in exactly that skill. One click to confirm; no guesswork.',
+    Mock: MentorshipMock,
+    mockLeft: true,
+  },
+  {
+    chip: 'L&D Analytics',
+    chipColor: '#0EA5E9',
+    icon: <Insights sx={{ fontSize: 20 }} />,
+    heading: ['Measure what training', 'actually changed.'],
+    body: 'A live dashboard of evaluation scores by department, retention rates, and an organization-wide skill-gap heatmap rolled up from every employee’s roadmap. Stop guessing whether training worked — see it.',
+    Mock: AnalyticsMock,
     mockLeft: false,
   },
 ];

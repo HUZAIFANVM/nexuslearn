@@ -2,6 +2,7 @@ import { Box, Typography, LinearProgress, Chip } from '@mui/material';
 import {
   Description, AutoAwesome, CheckCircle, RadioButtonUnchecked,
   Bolt, AccessTime, LightbulbOutlined, TipsAndUpdates, Today,
+  RocketLaunch, Lock, Diversity3, ArrowForward, Warning, Style, Quiz,
 } from '@mui/icons-material';
 
 /**
@@ -448,6 +449,131 @@ export function SOPOfTheDayMock({ theme }) {
           Got it
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 6. Onboarding — new-hire checklist with progress                   */
+/* ------------------------------------------------------------------ */
+export function OnboardingMock({ theme }) {
+  const accent = '#14B8A6';
+  const steps = [
+    { label: 'Read: Company Handbook', done: true },
+    { label: 'Training: Security Basics', done: true },
+    { label: 'Evaluation: Code of Conduct', done: false },
+  ];
+  return (
+    <Box sx={MOCK_SHELL(theme, accent)}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <Box sx={{ width: 28, height: 28, borderRadius: '8px', background: `linear-gradient(135deg, ${accent} 0%, #0D9488 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+          <RocketLaunch sx={{ fontSize: 16 }} />
+        </Box>
+        <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ flex: 1 }}>Engineering New Hire</Typography>
+        <Typography variant="caption" fontWeight={700} sx={{ color: accent }}>67%</Typography>
+      </Box>
+      <LinearProgress variant="determinate" value={67} sx={{ height: 6, borderRadius: 3, mb: 1.5, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 3, background: `linear-gradient(90deg, ${accent}, #0D9488)` } }} />
+      {steps.map((s) => (
+        <Box key={s.label} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8, p: 1, borderRadius: '10px', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : `${accent}08`, borderLeft: '3px solid', borderColor: s.done ? accent : 'divider' }}>
+          {s.done ? <CheckCircle sx={{ fontSize: 16, color: accent }} /> : <RadioButtonUnchecked sx={{ fontSize: 16, color: 'text.disabled' }} />}
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.primary' }}>{s.label}</Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 7. Learning Tracks — sequential course steps                       */
+/* ------------------------------------------------------------------ */
+export function LearningTracksMock({ theme }) {
+  const accent = '#6366F1';
+  const items = [
+    { icon: <Description sx={{ fontSize: 13 }} />, label: 'Intro to Kubernetes', state: 'done' },
+    { icon: <Style sx={{ fontSize: 13 }} />, label: 'Pod Networking Cards', state: 'active' },
+    { icon: <Quiz sx={{ fontSize: 13 }} />, label: 'Deployment Quiz', state: 'locked' },
+  ];
+  return (
+    <Box sx={MOCK_SHELL(theme, accent)}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ flex: 1 }}>Kubernetes Fundamentals</Typography>
+        <Chip label="TRACK" size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: `${accent}15`, color: accent, borderRadius: '4px' }} />
+      </Box>
+      {items.map((it, i) => (
+        <Box key={it.label} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8, p: 1, borderRadius: '10px', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : `${accent}08`, opacity: it.state === 'locked' ? 0.55 : 1, borderLeft: '3px solid', borderColor: it.state === 'done' ? '#10B981' : it.state === 'active' ? accent : 'divider' }}>
+          <Box sx={{ width: 22, height: 22, borderRadius: '6px', bgcolor: `${accent}18`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{it.icon}</Box>
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.primary', flex: 1 }}>{it.label}</Typography>
+          {it.state === 'done' ? <CheckCircle sx={{ fontSize: 15, color: '#10B981' }} /> : it.state === 'locked' ? <Lock sx={{ fontSize: 13, color: 'text.disabled' }} /> : <Bolt sx={{ fontSize: 14, color: accent }} />}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 8. Mentorship — AI-suggested pairing                               */
+/* ------------------------------------------------------------------ */
+export function MentorshipMock({ theme }) {
+  const accent = '#EC4899';
+  return (
+    <Box sx={MOCK_SHELL(theme, accent)}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <Box sx={{ width: 28, height: 28, borderRadius: '8px', background: `linear-gradient(135deg, ${accent} 0%, #BE185D 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+          <Diversity3 sx={{ fontSize: 16 }} />
+        </Box>
+        <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ flex: 1 }}>Suggested pairing</Typography>
+        <Chip label="AI MATCH" size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: `${accent}15`, color: accent, borderRadius: '4px' }} />
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+        <Box sx={{ flex: 1, textAlign: 'center', p: 1, borderRadius: '10px', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#10B98112' }}>
+          <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ display: 'block', fontSize: '0.72rem' }}>Sara A.</Typography>
+          <Typography variant="caption" sx={{ fontSize: '0.62rem', color: '#10B981' }}>Strong · Docker</Typography>
+        </Box>
+        <ArrowForward sx={{ fontSize: 16, color: accent }} />
+        <Box sx={{ flex: 1, textAlign: 'center', p: 1, borderRadius: '10px', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#EF444412' }}>
+          <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ display: 'block', fontSize: '0.72rem' }}>Bilal K.</Typography>
+          <Typography variant="caption" sx={{ fontSize: '0.62rem', color: '#EF4444' }}>Gap · Docker</Typography>
+        </Box>
+      </Box>
+      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.66rem' }}>
+        Matched from growth-roadmap data — strength meets gap.
+      </Typography>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 9. L&D Analytics — KPIs + skill-gap bars                            */
+/* ------------------------------------------------------------------ */
+export function AnalyticsMock({ theme }) {
+  const accent = '#0EA5E9';
+  const gaps = [
+    { skill: 'Incident Response', v: 90 },
+    { skill: 'Data Privacy', v: 55 },
+    { skill: 'Access Control', v: 30 },
+  ];
+  return (
+    <Box sx={MOCK_SHELL(theme, accent)}>
+      <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+        {[{ k: 'Avg Score', v: '82%' }, { k: 'Retention', v: '74%' }, { k: 'Roadmaps', v: '128' }].map((m) => (
+          <Box key={m.k} sx={{ flex: 1, p: 1, borderRadius: '10px', textAlign: 'center', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : `${accent}0D` }}>
+            <Typography variant="caption" fontWeight={800} color="text.primary" sx={{ display: 'block', fontSize: '0.9rem' }}>{m.v}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6rem' }}>{m.k}</Typography>
+          </Box>
+        ))}
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+        <Warning sx={{ fontSize: 13, color: '#EF4444' }} />
+        <Typography variant="caption" fontWeight={700} color="text.primary" sx={{ fontSize: '0.68rem' }}>Top skill gaps</Typography>
+      </Box>
+      {gaps.map((g) => (
+        <Box key={g.skill} sx={{ mb: 0.8 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.3 }}>
+            <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'text.primary' }}>{g.skill}</Typography>
+          </Box>
+          <LinearProgress variant="determinate" value={g.v} sx={{ height: 5, borderRadius: 3, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 3, background: g.v > 70 ? 'linear-gradient(90deg,#EF4444,#DC2626)' : g.v > 45 ? 'linear-gradient(90deg,#F59E0B,#D97706)' : 'linear-gradient(90deg,#10B981,#059669)' } }} />
+        </Box>
+      ))}
     </Box>
   );
 }

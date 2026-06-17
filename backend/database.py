@@ -50,6 +50,10 @@ learning_tracks_collection = db.learning_tracks
 mentorships_collection = db.mentorships
 mentorships_collection.create_index([("mentor_id", 1)], name="mentorship_mentor")
 mentorships_collection.create_index([("mentee_id", 1)], name="mentorship_mentee")
+mentorship_sessions_collection = db.mentorship_sessions
+mentorship_sessions_collection.create_index([("mentorship_id", 1), ("created_at", -1)], name="mentorship_sessions_lookup")
+mentorship_messages_collection = db.mentorship_messages
+mentorship_messages_collection.create_index([("mentorship_id", 1), ("created_at", 1)], name="mentorship_messages_lookup")
 
 # Notifications
 notifications_collection = db.notifications

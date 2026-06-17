@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Button, Chip, Grid, IconButton, CircularProgress, Alert,
 } from '@mui/material';
-import { Add, Delete, Diversity3, ArrowForward } from '@mui/icons-material';
+import { Add, Delete, Diversity3, ArrowForward, CheckCircle } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { getSuggestions, createMentorship, listMentorships, deleteMentorship } from '../../api/mentorship';
+import { getSuggestions, createMentorship, listMentorships, deleteMentorship, completeMentorship } from '../../api/mentorship';
 import { fadeInUp } from '../../theme/glass';
 
 const SEV = {
@@ -86,9 +86,15 @@ export default function HRMentorshipPage() {
                 <Box key={m.id} display="flex" alignItems="center" gap={1} mb={1} sx={{ p: 1.5, borderRadius: '10px', bgcolor: 'action.hover' }}>
                   <Box flex={1} minWidth={0}>
                     <Typography variant="body2" fontWeight={600} noWrap>{m.mentor_name} → {m.mentee_name}</Typography>
-                    <Chip label={m.skill} size="small" sx={{ height: 18, mt: 0.5, bgcolor: theme.palette.custom.purpleTint, color: '#7C3AED' }} />
+                    <Box display="flex" gap={0.5} mt={0.5} alignItems="center">
+                      <Chip label={m.skill} size="small" sx={{ height: 18, bgcolor: theme.palette.custom.purpleTint, color: '#7C3AED' }} />
+                      <Chip label={m.status} size="small" sx={{ height: 18, textTransform: 'capitalize', bgcolor: m.status === 'completed' ? theme.palette.custom.greenTint : theme.palette.custom.amberTint, color: m.status === 'completed' ? '#059669' : '#D97706', fontWeight: 700 }} />
+                    </Box>
                   </Box>
-                  <IconButton size="small" onClick={() => deleteMentorship(m.id).then(load)}><Delete fontSize="small" /></IconButton>
+                  {m.status !== 'completed' && (
+                    <IconButton size="small" title="Mark complete" onClick={() => completeMentorship(m.id).then(load)} sx={{ color: '#10B981' }}><CheckCircle fontSize="small" /></IconButton>
+                  )}
+                  <IconButton size="small" title="Remove" onClick={() => deleteMentorship(m.id).then(load)}><Delete fontSize="small" /></IconButton>
                 </Box>
               ))}
             </CardContent>

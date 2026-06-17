@@ -8,6 +8,7 @@ import {
   LightMode, DarkMode, Menu as MenuIcon,
   Dashboard, Description, SmartToy, Style, Quiz,
   Route, People, MenuBook, AdminPanelSettings, Logout,
+  Insights, RocketLaunch, Diversity3,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
@@ -34,6 +35,10 @@ const HR_NAV = [
   { label: 'Competency Evaluations', icon: <Quiz />, path: '/hr/assessments' },
   { label: 'SOP of the Day', icon: <MenuBook />, path: '/hr/sop-of-the-day' },
   { label: 'Employee Management', icon: <People />, path: '/hr/employees' },
+  { label: 'Onboarding Paths', icon: <RocketLaunch />, path: '/hr/onboarding' },
+  { label: 'Learning Tracks', icon: <Route />, path: '/hr/tracks' },
+  { label: 'Mentorship', icon: <Diversity3 />, path: '/hr/mentorship' },
+  { label: 'L&D Analytics', icon: <Insights />, path: '/hr/analytics' },
 ];
 const EMPLOYEE_NAV = [
   { label: 'My Dashboard', icon: <Dashboard />, path: '/employee/dashboard' },
@@ -41,6 +46,9 @@ const EMPLOYEE_NAV = [
   { label: 'Retention Training', icon: <Style />, path: '/employee/flashcards' },
   { label: 'Competency Check', icon: <Quiz />, path: '/employee/assessments' },
   { label: 'Growth Roadmap', icon: <Route />, path: '/employee/learning-path' },
+  { label: 'Onboarding', icon: <RocketLaunch />, path: '/employee/onboarding' },
+  { label: 'Learning Tracks', icon: <Insights />, path: '/employee/tracks' },
+  { label: 'Mentorship', icon: <Diversity3 />, path: '/employee/mentorship' },
 ];
 const SUPER_ADMIN_NAV = [
   { label: 'HR Approvals', icon: <AdminPanelSettings />, path: '/admin/pending-hrs' },

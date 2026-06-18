@@ -322,7 +322,13 @@ export default function LandingPage() {
             NexusLearn
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
+            onClick={() => navigate('/support')}
+            sx={{ color: 'text.secondary', fontWeight: 500, display: { xs: 'none', sm: 'inline-flex' } }}
+          >
+            Support Us
+          </Button>
           <Button onClick={() => navigate('/login')} sx={{ color: 'text.secondary', fontWeight: 500 }}>
             Sign In
           </Button>
@@ -938,9 +944,21 @@ export default function LandingPage() {
                 NexusLearn
               </Typography>
             </Box>
-            <Typography color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              &copy; {new Date().getFullYear()} NexusLearn. AI-Powered Enterprise Learning Platform.
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 } }}>
+              <Typography
+                component="span"
+                onClick={() => navigate('/support')}
+                sx={{
+                  fontSize: '0.75rem', color: 'text.secondary', cursor: 'pointer', fontWeight: 600,
+                  '&:hover': { color: '#6366F1' },
+                }}
+              >
+                Support Us
+              </Typography>
+              <Typography color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                &copy; {new Date().getFullYear()} NexusLearn. AI-Powered Enterprise Learning Platform.
+              </Typography>
+            </Box>
           </Box>
         </Container>
       </Box>

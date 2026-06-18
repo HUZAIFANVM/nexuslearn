@@ -6,6 +6,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import AiLimitDialog from './components/AiLimitDialog';
 import LandingPage from './pages/LandingPage';
+import SupportPage from './pages/SupportPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
@@ -88,6 +89,7 @@ export default function App() {
               </Route>
 
               <Route path="/" element={<LandingPage />} />
+              <Route path="/support" element={<SupportPage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </BrowserRouter>

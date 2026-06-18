@@ -22,6 +22,12 @@ client.interceptors.response.use(
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+    // AI usage cap hit → broadcast so a global, graceful dialog can show
+    // (instead of every page handling the 429 on its own).
+    const detail = error.response?.data?.detail;
+    if (error.response?.status === 429 && detail && detail.code === 'ai_quota_exceeded') {
+      window.dispatchEvent(new CustomEvent('ai-limit-reached', { detail }));
+    }
     return Promise.reject(error);
   }
 );

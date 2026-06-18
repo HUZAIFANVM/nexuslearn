@@ -42,15 +42,25 @@ def record_and_check(user_id: str) -> None:
         # DB problem — don't block the user over a counter failure.
         return
 
+    # Structured detail so the frontend can show a graceful "limit reached"
+    # dialog (contact admin / upgrade) instead of a raw error.
     if global_count > settings.GROQ_DAILY_LIMIT:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="The platform's daily AI capacity has been reached. Please try again tomorrow.",
+            detail={
+                "code": "ai_quota_exceeded",
+                "scope": "global",
+                "message": "The platform has reached its daily AI capacity. Please try again after 00:00 UTC, or contact your administrator to raise the limit.",
+            },
         )
     if user_count > settings.GROQ_USER_DAILY_LIMIT:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="You've reached today's AI usage limit. It resets at 00:00 UTC.",
+            detail={
+                "code": "ai_quota_exceeded",
+                "scope": "user",
+                "message": "You've used all of today's AI generations. Your limit resets at 00:00 UTC — or contact your administrator to upgrade.",
+            },
         )
 
 

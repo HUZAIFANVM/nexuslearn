@@ -11,6 +11,7 @@ from database import (
     sop_automation_config_collection,
 )
 from auth.dependencies import get_current_user, require_hr_role
+from ai.usage import ai_quota
 from sop_of_the_day.services import generate_sop_highlight
 from sop_of_the_day.scheduler import (
     get_automation_config,
@@ -94,6 +95,7 @@ def _serialize_config(config: dict) -> AutomationConfigResponse:
 async def create_sop_of_the_day(
     data: SOPOfTheDayCreate,
     hr_user: dict = Depends(require_hr_role),
+    _quota: dict = Depends(ai_quota),
 ):
     """HR creates a new SOP of the Day from an ingested document."""
     # Verify document exists and has extracted text

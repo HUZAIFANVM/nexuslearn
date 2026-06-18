@@ -11,6 +11,7 @@ from database import (
     documents_collection,
 )
 from auth.dependencies import get_current_user, require_hr_role
+from ai.usage import ai_quota
 from learning_paths.services import generate_learning_path, calculate_overall_score, build_skill_evidence
 
 router = APIRouter(tags=["Learning Paths"])
@@ -121,7 +122,7 @@ def _gather_user_data(user_id: str, user_email: str) -> tuple:
 
 
 @router.post("/learning-paths/generate")
-async def generate_path(current_user: dict = Depends(get_current_user)):
+async def generate_path(current_user: dict = Depends(get_current_user), _quota: dict = Depends(ai_quota)):
     user_id = str(current_user["_id"])
 
     assessment_summary, flashcard_summary, available_docs = _gather_user_data(

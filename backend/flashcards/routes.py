@@ -7,6 +7,7 @@ from bson.errors import InvalidId
 from database import flashcard_sets_collection, flashcard_reviews_collection
 from config import settings
 from auth.dependencies import get_current_user, require_hr_role
+from ai.usage import ai_quota
 from documents.services import get_document_text
 from flashcards.services import generate_flashcards, sm2_update
 
@@ -66,7 +67,8 @@ def _get_dept_query(current_user: dict) -> dict:
 
 @router.post("/flashcard-sets")
 async def create_flashcard_set(
-    data: FlashcardSetCreate, hr_user: dict = Depends(require_hr_role)
+    data: FlashcardSetCreate, hr_user: dict = Depends(require_hr_role),
+    _quota: dict = Depends(ai_quota),
 ):
     from database import documents_collection
 

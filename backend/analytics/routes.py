@@ -15,6 +15,7 @@ from database import (
     learning_paths_collection,
 )
 from auth.dependencies import require_hr_role
+from ai.usage import usage_today
 
 router = APIRouter(tags=["Analytics"])
 
@@ -82,6 +83,7 @@ async def overview(hr_user: dict = Depends(require_hr_role)):
             "total_reviews": total_reviews,
         },
         "content": content,
+        "ai_usage": usage_today(),
     }
 
 

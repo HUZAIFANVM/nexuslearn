@@ -44,6 +44,19 @@ export default function AnalyticsPage() {
         <Typography variant="body2" color="text.secondary">Training effectiveness, engagement, and organization-wide skill gaps.</Typography>
       </Box>
 
+      {/* AI usage vs daily cap */}
+      {data.ai_usage && (
+        <Box sx={{ ...fadeInUp(20), mb: 2, p: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <Typography variant="body2" fontWeight={700} color="text.primary">AI usage today</Typography>
+          <Box sx={{ flex: 1, minWidth: 160 }}>
+            <LinearProgress variant="determinate" value={Math.min(100, (data.ai_usage.global_used / Math.max(1, data.ai_usage.global_limit)) * 100)} sx={{ height: 6, borderRadius: 3, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 3, background: 'linear-gradient(90deg,#0EA5E9,#3B82F6)' } }} />
+          </Box>
+          <Typography variant="caption" color="text.secondary">
+            {data.ai_usage.global_used} / {data.ai_usage.global_limit} calls · {data.ai_usage.remaining} left
+          </Typography>
+        </Box>
+      )}
+
       {/* KPI cards */}
       <Grid container spacing={2} mb={3}>
         {kpis.map((k, i) => (

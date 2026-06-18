@@ -10,6 +10,7 @@ from bson.errors import InvalidId
 from database import chatbots_collection, chat_history_collection, documents_collection
 from config import settings
 from auth.dependencies import get_current_user, require_hr_role
+from ai.usage import ai_quota
 from models.chatbot import ChatbotCreate, ChatbotResponse, ChatMessage, ChatResponse
 # [FAISS-DISABLED] from chatbots.services import (
 # [FAISS-DISABLED]     get_faiss_index, get_or_create_chain,
@@ -118,7 +119,8 @@ async def get_chatbots(current_user: dict = Depends(get_current_user)):
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(
-    chat_data: ChatMessage, current_user: dict = Depends(get_current_user)
+    chat_data: ChatMessage, current_user: dict = Depends(get_current_user),
+    _quota: dict = Depends(ai_quota),
 ):
     chatbot = chatbots_collection.find_one({"_id": _parse_object_id(chat_data.chatbot_id)})
     if not chatbot:
@@ -164,7 +166,8 @@ async def chat_with_bot(
 
 @router.post("/chat/stream")
 async def chat_with_bot_stream(
-    chat_data: ChatMessage, current_user: dict = Depends(get_current_user)
+    chat_data: ChatMessage, current_user: dict = Depends(get_current_user),
+    _quota: dict = Depends(ai_quota),
 ):
     """Stream chat response using Server-Sent Events.
 

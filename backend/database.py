@@ -55,6 +55,11 @@ mentorship_sessions_collection.create_index([("mentorship_id", 1), ("created_at"
 mentorship_messages_collection = db.mentorship_messages
 mentorship_messages_collection.create_index([("mentorship_id", 1), ("created_at", 1)], name="mentorship_messages_lookup")
 
+# LLM (Groq) usage counters — per-day rows for global + per-user caps.
+# TTL auto-removes old rows so the collection stays tiny.
+llm_usage_collection = db.llm_usage
+llm_usage_collection.create_index("created_at", expireAfterSeconds=7 * 86400)
+
 # Notifications
 notifications_collection = db.notifications
 

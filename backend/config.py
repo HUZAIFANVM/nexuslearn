@@ -73,6 +73,15 @@ class Settings(BaseSettings):
     # In production: set CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com
     CORS_ORIGINS: str = ""
 
+    # --- Rate limiting (in-app, per client IP, sliding 60s window) ---
+    RATE_LIMIT_PER_MIN: int = 120        # general endpoints
+    AUTH_RATE_LIMIT_PER_MIN: int = 12    # login/signup/reset/google (brute-force guard)
+
+    # --- Groq (free-tier) usage caps. A "call" = one LLM-backed request. ---
+    # Protects the free Groq quota. Tune to your model's requests/day allowance.
+    GROQ_DAILY_LIMIT: int = 1200         # whole app, per UTC day
+    GROQ_USER_DAILY_LIMIT: int = 40      # per user, per UTC day
+
     @property
     def cors_origins_list(self) -> List[str]:
         if not self.CORS_ORIGINS.strip():

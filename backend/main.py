@@ -1,4 +1,7 @@
-from fastapi import FastAPI
+import time
+from collections import deque, defaultdict
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 
@@ -28,6 +31,40 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- In-app rate limiting (per client IP, sliding 60s window) ---------------
+# Defence-in-depth behind Cloudflare. In-memory: fine for a single instance;
+# move to Redis if you scale to multiple backend instances.
+_RL_BUCKETS = defaultdict(deque)
+_AUTH_PREFIXES = ("/login", "/signup", "/forgot-password", "/reset-password",
+                  "/resend-verification", "/auth/google")
+
+
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    # Real client IP (we sit behind Cloudflare/DO load balancer).
+    fwd = request.headers.get("x-forwarded-for", "")
+    ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "unknown")
+    path = request.url.path
+    is_auth = any(path.startswith(p) for p in _AUTH_PREFIXES)
+    limit = settings.AUTH_RATE_LIMIT_PER_MIN if is_auth else settings.RATE_LIMIT_PER_MIN
+
+    now = time.time()
+    key = (ip, "auth" if is_auth else "gen")
+    bucket = _RL_BUCKETS[key]
+    cutoff = now - 60
+    while bucket and bucket[0] < cutoff:
+        bucket.popleft()
+    if len(bucket) >= limit:
+        retry = int(bucket[0] + 60 - now) + 1
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Too many requests. Please slow down."},
+            headers={"Retry-After": str(max(1, retry))},
+        )
+    bucket.append(now)
+    return await call_next(request)
+
 
 app.include_router(auth_router)
 app.include_router(admin_router)

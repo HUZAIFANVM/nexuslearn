@@ -8,6 +8,7 @@ from pymongo import ReturnDocument
 from database import assessments_collection, assessment_results_collection, assessment_attempts_collection
 from config import settings
 from auth.dependencies import get_current_user, require_hr_role
+from ai.usage import ai_quota
 from documents.services import get_document_text
 from assessments.services import generate_assessment_questions
 
@@ -90,7 +91,8 @@ def _build_detailed_answers(assessment: dict, graded_answers: list) -> list:
 
 @router.post("/assessments")
 async def create_assessment(
-    data: AssessmentCreate, hr_user: dict = Depends(require_hr_role)
+    data: AssessmentCreate, hr_user: dict = Depends(require_hr_role),
+    _quota: dict = Depends(ai_quota),
 ):
     from database import documents_collection
 

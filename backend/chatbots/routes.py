@@ -10,7 +10,7 @@ from bson.errors import InvalidId
 from database import chatbots_collection, chat_history_collection, documents_collection
 from config import settings
 from auth.dependencies import get_current_user, require_hr_role
-from ai.usage import ai_quota
+from ai.usage import ai_quota, count_llm_call
 from models.chatbot import ChatbotCreate, ChatbotResponse, ChatMessage, ChatResponse
 # [FAISS-DISABLED] from chatbots.services import (
 # [FAISS-DISABLED]     get_faiss_index, get_or_create_chain,
@@ -144,6 +144,7 @@ async def chat_with_bot(
 
     try:
         chain = get_or_create_chain(chat_data.chatbot_id, vectorstore)
+        count_llm_call()
         result = chain(
             {"question": chat_data.message, "chat_history": chat_history}
         )
@@ -211,6 +212,7 @@ async def chat_with_bot_stream(
             "Standalone question:"
         )
         try:
+            count_llm_call()
             condensed = global_llm.predict(
                 condense_template.format(history=history_text, question=question)
             )
@@ -235,6 +237,7 @@ async def chat_with_bot_stream(
     async def generate_sse():
         full_response = ""
 
+        count_llm_call()
         task = asyncio.create_task(
             streaming_llm.agenerate(
                 [[HumanMessage(content=qa_prompt)]],

@@ -77,10 +77,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MIN: int = 120        # general endpoints
     AUTH_RATE_LIMIT_PER_MIN: int = 12    # login/signup/reset/google (brute-force guard)
 
-    # --- Groq (free-tier) usage caps. A "call" = one LLM-backed request. ---
-    # Protects the free Groq quota. Tune to your model's requests/day allowance.
-    GROQ_DAILY_LIMIT: int = 1200         # whole app, per UTC day
-    GROQ_USER_DAILY_LIMIT: int = 40      # per user, per UTC day
+    # --- Groq (free-tier) usage caps ---
+    # Llama-4-Scout free tier ~= 1000 requests/day, ~30 requests/min. We count
+    # ACTUAL Groq requests for the global cap (retries included) and keep a buffer.
+    GROQ_DAILY_LIMIT: int = 900          # global ACTUAL Groq requests / UTC day (buffer under ~1000 RPD)
+    GROQ_USER_DAILY_LIMIT: int = 25      # per user AI actions / UTC day (fairness)
+    GROQ_RPM_LIMIT: int = 25             # global requests / minute (buffer under ~30 RPM)
 
     @property
     def cors_origins_list(self) -> List[str]:

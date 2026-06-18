@@ -1,5 +1,6 @@
 import json
 from ai.llm import global_llm
+from ai.usage import count_llm_call
 from ai.prompts import SOP_OF_THE_DAY_PROMPT, SOP_AUTOMATION_PROMPT
 
 
@@ -13,6 +14,7 @@ def generate_sop_highlight(document_name: str, document_text: str) -> dict:
         document_text=text,
     )
 
+    count_llm_call()
     response = global_llm.invoke(prompt)
     content = response.content.strip()
 
@@ -44,6 +46,7 @@ def generate_unique_sop_highlight(
         previous_topics=topics_str,
     )
 
+    count_llm_call()
     response = global_llm.invoke(prompt)
     content = response.content.strip()
 

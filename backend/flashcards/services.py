@@ -3,6 +3,7 @@ import re
 import uuid
 from datetime import datetime, timedelta
 from ai.llm import global_llm
+from ai.usage import count_llm_call
 from ai.prompts import FLASHCARD_GENERATION_PROMPT, FLASHCARD_TECHNICAL_PROMPT
 
 # Each flashcard style defines its prompt, the fields the LLM must return, and
@@ -125,6 +126,7 @@ def generate_flashcards(
         document_text=truncated_text,
     )
 
+    count_llm_call()
     response = global_llm.invoke(prompt)
     cards = _parse_llm_json(response.content)
 

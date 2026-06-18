@@ -3,6 +3,7 @@ import re
 import uuid
 import random
 from ai.llm import global_llm
+from ai.usage import count_llm_call
 from ai.prompts import (
     ASSESSMENT_MCQ_PROMPT, ASSESSMENT_SCENARIO_PROMPT,
     ASSESSMENT_TECHNICAL_MCQ_PROMPT, ASSESSMENT_TECHNICAL_SCENARIO_PROMPT,
@@ -142,6 +143,7 @@ def _generate_questions_with_retry(prompt: str, expected_type: str, num_requeste
 
         # A bad attempt (LLM error or unparseable JSON) must not abort the whole run.
         try:
+            count_llm_call()  # one actual Groq request per retry iteration
             response = global_llm.invoke(current_prompt)
             questions = _parse_llm_json(response.content)
         except Exception:

@@ -1,5 +1,6 @@
 import json
 from ai.llm import global_llm
+from ai.usage import count_llm_call
 from ai.prompts import LEARNING_PATH_PROMPT
 
 
@@ -156,6 +157,7 @@ def generate_learning_path(
         available_documents=available_documents,
     )
 
+    count_llm_call()
     response = global_llm.invoke(prompt)
     content = response.content.strip()
 
